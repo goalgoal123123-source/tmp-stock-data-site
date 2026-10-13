@@ -103,6 +103,58 @@ footer .fl{display:flex;flex-wrap:wrap;gap:8px 24px;margin-bottom:16px}
 .version{background:#122a1c;border:1px solid #1e6b3f;border-radius:var(--radius);padding:16px 20px;margin:16px 0 24px;font-size:.92rem}
 .version b{color:#2ecc71}
 .hl-red{color:var(--red)} .hl-green{color:var(--green)}
+/* live 即時查詢 */
+.up{color:#f6465d}.dn{color:#2ebd85}
+.idx-bar{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin:0 0 22px}
+.idx-bar .note{grid-column:1/-1}
+.idx{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.idx .in{font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.idx .ip{font-size:1.08rem;font-weight:700;margin:3px 0}
+.idx .ic{font-size:.85rem;font-weight:600;white-space:nowrap}
+.live-search{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:18px}
+.live-row{display:flex;gap:10px}
+.live-row input{flex:1;padding:12px 16px;font-size:1.02rem;border-radius:8px;border:1px solid var(--line);background:#071120;color:var(--text);outline:none;text-transform:uppercase;min-width:0}
+.live-row input:focus{border-color:var(--gold)}
+.qbtn{background:var(--gold);color:#141414;border:none;border-radius:8px;padding:0 30px;font-size:1rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.qbtn:hover{background:#ffcf3d}
+.qbtn:disabled{opacity:.55;cursor:wait}
+.hotchips{margin-top:12px;color:var(--muted);font-size:.9rem;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hot{background:#1a2f52;border:1px solid var(--line);color:var(--text);border-radius:999px;padding:6px 14px;font-size:.86rem;cursor:pointer}
+.hot:hover{border-color:var(--gold);color:var(--gold)}
+.live-msg{background:#3d1a20;border:1px solid #7a2a36;color:#ffb3bd;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:.93rem}
+.quote-card{background:linear-gradient(160deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:18px}
+.qc-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.qc-name{font-size:1.4rem;font-weight:700;color:#fff}
+.qc-code{color:var(--muted);margin-left:8px;font-size:.95rem}
+.mkt{font-size:.75rem;border-radius:4px;padding:2px 10px;font-weight:700;margin-left:8px;white-space:nowrap}
+.mkt.cn{background:#2b1f0e;color:var(--gold);border:1px solid #6b5113}
+.mkt.hk{background:#1a2b1f;color:#7ee2a8;border:1px solid #2c6b4a}
+.mkt.us{background:#0f2b33;color:#4dd0e1;border:1px solid #1d5c6b}
+.mkt.idxm{background:#2b2340;color:#b9a7f2;border:1px solid #4a3d7a}
+.qc-time{color:var(--muted);font-size:.85rem}
+.qc-price-row{display:flex;align-items:baseline;gap:16px;margin:10px 0 14px;flex-wrap:wrap}
+.qc-price{font-size:2.6rem;font-weight:800;letter-spacing:.02em}
+.qc-chg{font-size:1.15rem;font-weight:700}
+.qc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 16px;font-size:.92rem;color:var(--muted)}
+.qc-grid b{color:var(--text);font-weight:600;margin-left:6px}
+.ind-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.ind{background:#071120;border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-size:.88rem}
+.ind b{color:var(--gold)}
+.kline-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:18px}
+.kline-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--muted);font-size:.9rem;flex-wrap:wrap;gap:6px}
+.ma-legend i{display:inline-block;width:18px;height:3px;margin:0 6px 0 14px;vertical-align:middle;border-radius:2px}
+.ma5{background:#f0b90b}.ma10{background:#4dd0e1}
+.kline-box{position:relative}
+#kcanvas{width:100%;height:380px;display:block;cursor:crosshair;touch-action:none}
+.k-tip{position:absolute;pointer-events:none;background:rgba(7,17,32,.95);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.8rem;line-height:1.65;color:var(--text);white-space:nowrap;z-index:5}
+.kline-err{color:var(--muted);text-align:center;padding:60px 0}
+@media(max-width:760px){
+  .idx-bar{grid-template-columns:repeat(2,1fr)}
+  .qc-grid{grid-template-columns:repeat(2,1fr)}
+  #kcanvas{height:300px}
+  .live-row{flex-direction:column}
+  .qbtn{padding:12px}
+}
 </style>
 </head>
 <body>
@@ -110,6 +162,7 @@ footer .fl{display:flex;flex-wrap:wrap;gap:8px 24px;margin-bottom:16px}
 <nav>
   <div class="wrap">
     <span class="brand">📊 股市數據工具包</span>
+    <a class="navlink" href="#live">即時查詢</a>
     <a class="navlink" href="#overview">概覽</a>
     <a class="navlink" href="#a-stock">A股工具包</a>
     <a class="navlink" href="#global">全球工具包</a>
@@ -174,6 +227,57 @@ footer .fl{display:flex;flex-wrap:wrap;gap:8px 24px;margin-bottom:16px}
   </div>
 </div>
 </header>
+
+<section id="live"><div class="wrap">
+<h2 class="sec">⚡ 即時查詢</h2>
+<p class="sub">A股／港股／美股即時行情＋日 K 線＋技術指標，數據經即時 API 拉取（60 秒自動刷新）。</p>
+
+<div class="idx-bar" id="idxBar"><div class="note">指數載入中…</div></div>
+
+<div class="live-search">
+  <div class="live-row">
+    <input id="liveInput" placeholder="例：600519／00700／AAPL／TSLA" maxlength="12" autocomplete="off">
+    <button id="liveBtn" class="qbtn">查詢</button>
+  </div>
+  <div class="hotchips">
+    <span>熱門：</span>
+    <button class="hot" data-sym="600519">600519 貴州茅台</button>
+    <button class="hot" data-sym="000001" data-idx="sh000001">000001 上證指數</button>
+    <button class="hot" data-sym="00700">00700 騰訊</button>
+    <button class="hot" data-sym="AAPL">AAPL 蘋果</button>
+    <button class="hot" data-sym="TSLA">TSLA 特斯拉</button>
+    <button class="hot" data-sym="NVDA">NVDA 英偉達</button>
+  </div>
+</div>
+
+<div id="liveMsg" class="live-msg" style="display:none"></div>
+
+<div id="quoteCard" class="quote-card" style="display:none">
+  <div class="qc-head">
+    <div><span class="qc-name" id="qcName"></span><span class="qc-code" id="qcCode"></span><span class="mkt" id="qcMkt"></span></div>
+    <div class="qc-time" id="qcTime"></div>
+  </div>
+  <div class="qc-price-row">
+    <div class="qc-price" id="qcPrice"></div>
+    <div class="qc-chg" id="qcChg"></div>
+  </div>
+  <div class="qc-grid">
+    <div>開 <b id="qcOpen"></b></div>
+    <div>高 <b id="qcHigh"></b></div>
+    <div>低 <b id="qcLow"></b></div>
+    <div>昨收 <b id="qcPrev"></b></div>
+    <div>成交量 <b id="qcVol"></b></div>
+    <div>成交額 <b id="qcAmt"></b></div>
+  </div>
+  <div class="ind-chips" id="indChips"></div>
+</div>
+
+<div id="klineWrap" class="kline-wrap" style="display:none">
+  <div class="kline-head"><span>📈 日 K 線<span id="klineSrc" style="color:var(--muted)"></span></span><span class="ma-legend"><i class="ma5"></i>MA5<i class="ma10"></i>MA10</span></div>
+  <div class="kline-box"><canvas id="kcanvas"></canvas><div id="kTip" class="k-tip" style="display:none"></div></div>
+  <div id="klineErr" class="kline-err" style="display:none">K線暫時不可用</div>
+</div>
+</div></section>
 
 <section id="overview"><div class="wrap">
 <h2 class="sec">📋 概覽</h2>
@@ -870,6 +974,272 @@ function render(q){
 }
 input.addEventListener('input',function(){render(input.value);});
 render('');
+})();
+</script>
+<script>
+(function(){
+"use strict";
+var API='https://stock-data-api.goalgoal123123.workers.dev';
+var $=function(id){return document.getElementById(id);};
+function esc(s){s=String(s==null?'':s);return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(n,d){if(n==null||isNaN(n))return '—';d=(d==null?2:d);return Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmtS(n,d){if(n==null||isNaN(n))return '—';return (n>=0?'+':'')+fmt(n,d);}
+function updn(v){return v>0?'up':(v<0?'dn':'');}
+function arrow(v){return v>0?'▲':(v<0?'▼':'–');}
+function fmtVol(v,m){
+  if(v==null||isNaN(v))return '—';
+  if(m==='us'){if(v>=1e9)return (v/1e9).toFixed(2)+'B';if(v>=1e6)return (v/1e6).toFixed(2)+'M';return Math.round(v).toLocaleString('en-US');}
+  if(v>=1e8)return (v/1e8).toFixed(2)+'億';
+  if(v>=1e4)return (v/1e4).toFixed(2)+'萬';
+  return Math.round(v).toLocaleString('en-US');
+}
+function mktName(m){return m==='cn'?'A股':(m==='hk'?'港股':(m==='us'?'美股':'指數'));}
+function mktCls(m){return m==='idx'?'idxm':m;}
+
+/* ---------- 指數速覽 ---------- */
+var IDX_CACHE=null, curSym=null, curIdx=null;
+function loadIdx(silent){
+  fetch(API+'/api/index').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){
+    if(!j||!j.ok||!j.data||!j.data.length)throw 0;
+    IDX_CACHE=j.data;
+    $('idxBar').innerHTML=j.data.map(function(x){
+      return '<div class="idx"><div class="in">'+esc(x.name)+'</div><div class="ip">'+fmt(x.price,2)+
+        '</div><div class="ic '+updn(x.changePct)+'">'+arrow(x.changePct)+' '+fmtS(x.changePct,2)+'%</div></div>';
+    }).join('');
+    if(curIdx)renderIdxQuote();
+  }).catch(function(){
+    if(!silent)$('idxBar').innerHTML='<div class="note">指數暫時載入唔到，請稍後再試。</div>';
+  });
+}
+
+/* ---------- 行情 ---------- */
+function setBusy(b){$('liveBtn').disabled=b;$('liveBtn').textContent=b?'查詢中…':'查詢';}
+function showMsg(t){var m=$('liveMsg');m.textContent=t;m.style.display='block';}
+function hideMsg(){$('liveMsg').style.display='none';}
+function renderQuote(d){
+  $('quoteCard').style.display='block';
+  $('qcName').textContent=d.name||'—';
+  $('qcCode').textContent=d.code||'';
+  var mk=$('qcMkt');mk.textContent=mktName(d.market);mk.className='mkt '+mktCls(d.market);
+  var pc=$('qcPrice');pc.textContent=fmt(d.price,2);pc.className='qc-price '+updn(d.changePct);
+  $('qcChg').innerHTML='<span class="'+updn(d.change)+'">'+fmtS(d.change,2)+'</span> <span class="'+updn(d.changePct)+'">'+fmtS(d.changePct,2)+'%</span>';
+  $('qcOpen').textContent=fmt(d.open,2);
+  $('qcHigh').textContent=fmt(d.high,2);
+  $('qcLow').textContent=fmt(d.low,2);
+  $('qcPrev').textContent=fmt(d.prevClose,2);
+  $('qcVol').textContent=fmtVol(d.volume,d.market);
+  $('qcAmt').textContent=fmtVol(d.amount,d.market);
+  var t=d.market==='us'?(d.time||''):((d.date||'')+' '+(d.time||'')).trim();
+  $('qcTime').textContent=t?('更新：'+t):'';
+  hideMsg();
+}
+function queryQuote(sym){
+  return fetch(API+'/api/quote?s='+encodeURIComponent(sym)).then(function(r){
+    if(!r.ok)throw new Error('net');return r.json();
+  }).then(function(j){
+    if(!j||!j.ok)throw new Error((j&&j.error)||'查詢失敗，請稍後再試。');
+    var d=j.data&&j.data[0];
+    if(!d||d.error)throw new Error('查無「'+sym+'」嘅數據，請檢查代碼。');
+    renderQuote(d);
+    return d;
+  });
+}
+function renderIdxQuote(){
+  var it=null,i;
+  for(i=0;IDX_CACHE&&i<IDX_CACHE.length;i++){if(IDX_CACHE[i].code===curIdx){it=IDX_CACHE[i];break;}}
+  if(!it)return;
+  renderQuote({name:it.name,code:it.code,market:'idx',price:it.price,prevClose:it.prevClose,
+    change:it.price-it.prevClose,changePct:it.changePct,open:null,high:null,low:null,
+    volume:null,amount:null,date:'',time:''});
+  KD=null;
+  $('klineWrap').style.display='block';
+  var cv=$('kcanvas');cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+  $('kTip').style.display='none';
+  $('klineErr').style.display='block';
+  $('klineErr').textContent='K線暫時不可用（指數暫未提供 K 線）';
+  $('indChips').innerHTML='';
+}
+function doQuery(sym,idxCode){
+  sym=(sym||'').trim().toUpperCase();
+  hideMsg();
+  if(idxCode){curIdx=idxCode;curSym=null;renderIdxQuote();return;}
+  if(!/^[0-9A-Z.]{1,12}$/.test(sym)){showMsg('代碼格式唔啱：A股6位數字／港股5位數字／美股字母（例如：600519／00700／AAPL）。');return;}
+  setBusy(true);
+  queryQuote(sym).then(function(d){
+    setBusy(false);curSym=sym;curIdx=null;
+    loadKline(sym,d.market);
+  }).catch(function(e){
+    setBusy(false);
+    showMsg(e.message==='net'?'網絡連線失敗，請檢查網絡後再試。':String(e.message||'查詢失敗，請稍後再試。'));
+  });
+}
+
+/* ---------- K 線圖 ---------- */
+var KD=null,curHi=-1,hoverBound=false;
+function ma(vals,n){
+  var out=new Array(vals.length).fill(null),s=0,i;
+  for(i=0;i<vals.length;i++){s+=vals[i];if(i>=n)s-=vals[i-n];if(i>=n-1)out[i]=s/n;}
+  return out;
+}
+function loadKline(sym,mkt){
+  curHi=-1;KD=null;
+  $('klineWrap').style.display='block';
+  $('klineErr').style.display='none';
+  $('klineErr').textContent='K線暫時不可用';
+  $('klineSrc').textContent='';
+  $('kTip').style.display='none';
+  $('indChips').innerHTML='';
+  fetch(API+'/api/kline?symbol='+encodeURIComponent(sym)+'&num=120').then(function(r){
+    if(!r.ok)throw {msg:'K線暫時不可用'};return r.json();
+  }).then(function(j){
+    if(!j||!j.ok||!j.data||!j.data.length)throw {msg:(j&&j.error)||'K線暫時不可用'};
+    $('klineSrc').textContent=j.source?(' · 來源：'+j.source):'';
+    var closes=j.data.map(function(d){return d.close;});
+    KD={data:j.data,mkt:mkt,ma5:ma(closes,5),ma10:ma(closes,10)};
+    bindHover();
+    paint(-1);
+    renderInd(j.data);
+  }).catch(function(e){
+    var cv=$('kcanvas');cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+    $('klineErr').style.display='block';
+    $('klineErr').textContent=(e&&e.msg)||'K線暫時不可用';
+  });
+}
+function geom(W,H){
+  var padL=8,padR=64,padT=14,padB=6;
+  var volH=Math.round((H-padT-padB)*0.26),priceH=H-padT-padB-volH-8;
+  var data=KD.data,n=data.length,i,d;
+  var lo=Infinity,hiP=-Infinity,mv=0;
+  for(i=0;i<n;i++){d=data[i];if(d.low<lo)lo=d.low;if(d.high>hiP)hiP=d.high;if(d.volume>mv)mv=d.volume;}
+  var arrs=[KD.ma5,KD.ma10];
+  for(var a=0;a<arrs.length;a++)for(i=0;i<n;i++){var v=arrs[a][i];if(v!=null){if(v<lo)lo=v;if(v>hiP)hiP=v;}}
+  var pad=(hiP-lo)*0.06||1;lo-=pad;hiP+=pad;
+  var cw=(W-padL-padR)/n;
+  return {padL:padL,padR:padR,padT:padT,padB:padB,volH:volH,priceH:priceH,n:n,cw:cw,
+    bw:Math.max(1,Math.min(14,cw*0.62)),lo:lo,hiP:hiP,mv:mv,
+    X:function(i){return padL+cw*i+cw/2;},
+    Y:function(p){return padT+priceH*(1-(p-lo)/(hiP-lo));},
+    YV:function(v){return padT+priceH+8+volH*(mv?1-v/mv:1);}};
+}
+function paint(hi){
+  if(!KD)return;
+  var cv=$('kcanvas'),box=cv.parentElement;
+  var W=box.clientWidth,H=cv.clientHeight||380,dpr=window.devicePixelRatio||1;
+  if(W<50)return;
+  cv.width=W*dpr;cv.height=H*dpr;
+  var ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  var g=geom(W,H),data=KD.data,n=g.n,i,d;
+  KD.g=g;
+  ctx.font='11px sans-serif';ctx.textBaseline='middle';
+  var gi,p,y;
+  for(gi=0;gi<=4;gi++){p=g.lo+(g.hiP-g.lo)*gi/4;y=g.Y(p);
+    ctx.strokeStyle='rgba(36,57,92,.6)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(g.padL,y);ctx.lineTo(W-g.padR+8,y);ctx.stroke();
+    ctx.fillStyle='#9fb0c8';ctx.fillText(fmt(p,2),W-g.padR+12,y);}
+  ctx.fillStyle='#9fb0c8';ctx.fillText(fmtVol(g.mv,KD.mkt),W-g.padR+12,g.padT+g.priceH+18);
+  for(i=0;i<n;i++){d=data[i];
+    var up=d.close>=d.open,col=up?'#f6465d':'#2ebd85',x=g.X(i);
+    ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x,g.Y(d.high));ctx.lineTo(x,g.Y(d.low));ctx.stroke();
+    var yO=g.Y(d.open),yC=g.Y(d.close),top=Math.min(yO,yC),h=Math.max(1,Math.abs(yC-yO));
+    ctx.fillRect(x-g.bw/2,top,g.bw,h);
+    if(d.volume&&g.mv>0){var vh=g.volH*(d.volume/g.mv);ctx.fillRect(x-g.bw/2,g.padT+g.priceH+8+g.volH-vh,g.bw,vh);}
+  }
+  function maline(arr,col){ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.beginPath();var st=false;
+    for(var k=0;k<n;k++){if(arr[k]==null)continue;var x=g.X(k),yy=g.Y(arr[k]);
+      if(!st){ctx.moveTo(x,yy);st=true;}else ctx.lineTo(x,yy);}ctx.stroke();}
+  maline(KD.ma5,'#f0b90b');maline(KD.ma10,'#4dd0e1');
+  ctx.fillStyle='#9fb0c8';
+  var xi=[0,Math.floor(n/2),n-1];
+  for(gi=0;gi<xi.length;gi++){ctx.fillText(String(data[xi[gi]].date).slice(5),g.X(xi[gi])-16,H-10);}
+  if(hi>=0&&hi<n){
+    var hx=g.X(hi);
+    ctx.strokeStyle='rgba(232,238,247,.45)';ctx.setLineDash([4,4]);ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(hx,g.padT);ctx.lineTo(hx,H-g.padB);ctx.stroke();ctx.setLineDash([]);
+    showTip(hi,hx,W);
+  }else{$('kTip').style.display='none';}
+}
+function showTip(i,x,W){
+  var d=KD.data[i],tip=$('kTip');
+  var ch=d.close-d.open,pct=d.open?ch/d.open*100:0;
+  var ma5=KD.ma5[i],ma10=KD.ma10[i];
+  tip.innerHTML='<b>'+esc(d.date)+'</b><br>開 '+fmt(d.open,2)+'　高 '+fmt(d.high,2)+
+    '<br>低 '+fmt(d.low,2)+'　收 '+fmt(d.close,2)+
+    '<br>漲跌 <span class="'+updn(ch)+'">'+fmtS(ch,2)+'（'+fmtS(pct,2)+'%）</span>'+
+    '<br>量 '+fmtVol(d.volume,KD.mkt)+
+    '<br>MA5 '+fmt(ma5,2)+'　MA10 '+fmt(ma10,2);
+  tip.style.display='block';
+  var tw=tip.offsetWidth;
+  tip.style.left=Math.min(W-tw-8,Math.max(8,x+14))+'px';
+  tip.style.top='12px';
+}
+function bindHover(){
+  if(hoverBound||!KD)return;hoverBound=true;
+  var cv=$('kcanvas');
+  function toIdx(clientX){
+    var r=cv.getBoundingClientRect(),x=clientX-r.left,w=r.width;
+    if(!KD||!KD.g)return -1;
+    var n=KD.data.length,padL=8,padR=64,cw=(w-padL-padR)/n;
+    return Math.max(0,Math.min(n-1,Math.floor((x-padL)/cw)));
+  }
+  cv.addEventListener('mousemove',function(e){var i=toIdx(e.clientX);if(i>=0){curHi=i;paint(i);}});
+  cv.addEventListener('mouseleave',function(){curHi=-1;paint(-1);});
+  cv.addEventListener('touchmove',function(e){if(e.touches.length){var i=toIdx(e.touches[0].clientX);if(i>=0){curHi=i;paint(i);}}e.preventDefault();},{passive:false});
+  cv.addEventListener('touchend',function(){curHi=-1;paint(-1);});
+  window.addEventListener('resize',function(){if(KD)paint(curHi);});
+}
+
+/* ---------- 技術指標（前端計算） ---------- */
+function ema(vals,p){
+  var k=2/(p+1),out=[],prev=null,i;
+  for(i=0;i<vals.length;i++){prev=(prev==null)?vals[i]:vals[i]*k+prev*(1-k);out.push(prev);}
+  return out;
+}
+function rsi14(closes){
+  var p=14,i;
+  if(closes.length<p+1)return null;
+  var g=0,l=0;
+  for(i=1;i<=p;i++){var c=closes[i]-closes[i-1];if(c>0)g+=c;else l-=c;}
+  g/=p;l/=p;
+  for(i=p+1;i<closes.length;i++){var ch=closes[i]-closes[i-1];g=(g*(p-1)+Math.max(ch,0))/p;l=(l*(p-1)+Math.max(-ch,0))/p;}
+  return l===0?100:100-100/(1+g/l);
+}
+function macdV(closes){
+  var e12=ema(closes,12),e26=ema(closes,26),i;
+  var dif=e12.map(function(v,k){return v-e26[k];});
+  var dea=ema(dif,9),n=closes.length-1;
+  return {dif:dif[n],dea:dea[n],hist:(dif[n]-dea[n])*2};
+}
+function renderInd(data){
+  var closes=data.map(function(d){return d.close;});
+  var r=rsi14(closes),m=macdV(closes),m20=ma(closes,20);
+  var last=closes[closes.length-1],v20=m20[m20.length-1];
+  var pos=(v20&&v20!==0)?((last-v20)/v20*100):null;
+  var rTag=r==null?'':(r>=70?' 超買':(r<=30?' 超賣':''));
+  $('indChips').innerHTML=
+    '<span class="ind">RSI(14) <b>'+(r==null?'—':r.toFixed(1))+rTag+'</b></span>'+
+    '<span class="ind">MACD(12,26,9) DIF <b>'+fmtS(m.dif,2)+'</b>／DEA <b>'+fmtS(m.dea,2)+'</b>／柱 <b class="'+updn(m.hist)+'">'+fmtS(m.hist,2)+'</b></span>'+
+    '<span class="ind">收市價 vs MA20 <b class="'+updn(pos)+'">'+(pos==null?'—':fmtS(pos,2)+'%')+'</b></span>';
+}
+
+/* ---------- 自動刷新＋初始化 ---------- */
+setInterval(function(){
+  if(document.hidden)return;
+  if(curIdx){loadIdx(true);return;}
+  if(!curSym)return;
+  queryQuote(curSym).catch(function(){});
+},60000);
+loadIdx(false);
+$('liveBtn').addEventListener('click',function(){doQuery($('liveInput').value,null);});
+$('liveInput').addEventListener('keydown',function(e){if(e.key==='Enter')doQuery($('liveInput').value,null);});
+var hots=document.querySelectorAll('.hot'),hi;
+for(hi=0;hi<hots.length;hi++){
+  (function(b){b.addEventListener('click',function(){
+    $('liveInput').value=b.getAttribute('data-sym');
+    doQuery(b.getAttribute('data-sym'),b.getAttribute('data-idx'));
+  });})(hots[hi]);
+}
 })();
 </script>
 </body>
