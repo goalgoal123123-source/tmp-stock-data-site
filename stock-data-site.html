@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>股市數據工具包 · A股 × 美股＋全球</title>
+<style>
+:root{
+  --bg:#0a1628; --bg2:#0d1d33; --card:#12233d; --card2:#16294a;
+  --gold:#f0b90b; --gold2:#d4a006; --red:#f6465d; --green:#0ecb81;
+  --text:#e8eef7; --muted:#9fb0c8; --line:#24395c; --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,"PingFang HK","PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;line-height:1.7;font-size:16px}
+a{color:var(--gold);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+section{padding:64px 0 40px;scroll-margin-top:64px}
+h2.sec{font-size:1.7rem;color:var(--gold);margin-bottom:8px;letter-spacing:.05em}
+.sub{color:var(--muted);margin-bottom:28px}
+/* nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(10,22,40,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:0 16px}
+nav a.navlink{white-space:nowrap;padding:14px 12px;color:var(--muted);font-size:.92rem;border-bottom:2px solid transparent}
+nav a.navlink.active,nav a.navlink:hover{color:var(--gold);border-bottom-color:var(--gold);text-decoration:none}
+.brand{color:var(--gold);font-weight:700;padding:14px 12px 14px 4px;white-space:nowrap;font-size:.95rem}
+/* hero */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#0a1628 0%,#0e2140 55%,#0a1628 100%);padding:80px 0 70px;border-bottom:1px solid var(--line)}
+.hero .candles{position:absolute;inset:0;opacity:.16;pointer-events:none}
+.hero h1{font-size:2.6rem;letter-spacing:.06em;margin-bottom:10px;color:#fff}
+.hero h1 .g{color:var(--gold)}
+.hero p.tag{color:var(--muted);font-size:1.05rem;margin-bottom:36px;max-width:760px}
+.repo-cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;position:relative;z-index:1}
+.repo-card{background:linear-gradient(160deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--radius);padding:24px;transition:transform .15s,border-color .15s}
+.repo-card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.repo-card h3{font-size:1.35rem;margin-bottom:10px}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+.badge{background:#1a2f52;border:1px solid var(--line);color:var(--text);border-radius:999px;padding:3px 12px;font-size:.82rem;white-space:nowrap}
+.badge.gold{border-color:var(--gold);color:var(--gold)}
+.badge.red{color:var(--red);border-color:#5a2b33}
+.badge.green{color:var(--green);border-color:#1f4a3d}
+.card-links{display:flex;gap:14px;font-size:.9rem}
+/* tables */
+.tbl{width:100%;border-collapse:collapse;background:var(--card);border-radius:var(--radius);overflow:hidden;margin:16px 0;font-size:.93rem}
+.tbl th{background:#1a2f52;color:var(--gold);text-align:left;padding:10px 14px;font-weight:600;white-space:nowrap}
+.tbl td{padding:9px 14px;border-top:1px solid var(--line);vertical-align:top}
+.tbl tr:hover td{background:#16294a}
+.nowrap{white-space:nowrap}
+/* layer cards */
+.layer{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin:0 0 18px}
+.layer h4{font-size:1.15rem;color:#fff;margin-bottom:2px}
+.layer h4 .n{color:var(--gold);margin-right:8px;font-size:.95rem}
+.layer .src{color:var(--muted);font-size:.85rem;margin-bottom:10px}
+.layer .tbl{margin:10px 0 4px;font-size:.88rem}
+.pre{background:#071120;border:1px solid var(--line);border-radius:var(--radius);padding:20px;overflow-x:auto;font-family:"SF Mono",Consolas,"Courier New",monospace;font-size:.82rem;line-height:1.55;color:#cfe0f5;margin:16px 0 28px;white-space:pre}
+.pre .hl{color:var(--gold)}
+/* search */
+.searchbox{position:sticky;top:57px;z-index:40;background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:8px 0 20px}
+.searchbox input{width:100%;padding:13px 18px;font-size:1.05rem;border-radius:8px;border:1px solid var(--line);background:#071120;color:var(--text);outline:none}
+.searchbox input:focus{border-color:var(--gold)}
+.search-meta{color:var(--muted);font-size:.85rem;margin-top:8px}
+.repo-tag{display:inline-block;font-size:.75rem;border-radius:4px;padding:1px 8px;font-weight:600;white-space:nowrap}
+.repo-tag.a{background:#2b1f0e;color:var(--gold);border:1px solid #6b5113}
+.repo-tag.g{background:#0f2b33;color:#4dd0e1;border:1px solid #1d5c6b}
+mark{background:rgba(240,185,11,.32);color:#ffe9a8;border-radius:3px;padding:0 2px}
+/* tier badges */
+.tier{display:inline-block;min-width:26px;text-align:center;font-weight:700;border-radius:6px;padding:2px 8px;font-size:.85rem}
+.tier.S{background:#0f3d24;color:#2ecc71;border:1px solid #1e6b3f}
+.tier.B{background:#123a5c;color:#5aa9e6;border:1px solid #2a6a9e}
+.tier.C{background:#4a3812;color:#f0b90b;border:1px solid #8a6a1e}
+.tier.D{background:#4a1a22;color:#f6465d;border:1px solid #8a2a36}
+.tier.X{background:#333;color:#aaa;border:1px solid #555}
+/* tabs */
+.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.tabbtn{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 22px;font-size:.95rem;cursor:pointer}
+.tabbtn.active{background:var(--gold);color:#141414;border-color:var(--gold);font-weight:700}
+.prompt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.prompt{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.prompt .pt{font-size:.93rem}
+.prompt .pl{color:var(--muted);font-size:.78rem;margin-bottom:2px}
+.copybtn{background:#1a2f52;border:1px solid var(--line);color:var(--gold);border-radius:8px;padding:7px 14px;font-size:.85rem;cursor:pointer;white-space:nowrap}
+.copybtn:hover{border-color:var(--gold)}
+.copybtn.done{color:var(--green);border-color:var(--green)}
+/* code */
+.code{background:#071120;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;overflow-x:auto;font-family:"SF Mono",Consolas,monospace;font-size:.85rem;line-height:1.6;color:#cfe0f5;margin:12px 0}
+.code .c{color:#6b7f9c}
+/* footer */
+footer{border-top:1px solid var(--line);margin-top:40px;padding:36px 0 60px;color:var(--muted);font-size:.88rem}
+footer .fl{display:flex;flex-wrap:wrap;gap:8px 24px;margin-bottom:16px}
+.disclaimer{background:#1a2f52;border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;font-size:.85rem}
+/* caps */
+.caps{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+/* responsive */
+@media(max-width:760px){
+  .repo-cards{grid-template-columns:1fr}
+  .prompt-grid{grid-template-columns:1fr}
+  .hero h1{font-size:1.9rem}
+  section{padding:44px 0 28px}
+  .searchbox{top:52px}
+}
+.note{color:var(--muted);font-size:.9rem;margin:10px 0}
+.version{background:#122a1c;border:1px solid #1e6b3f;border-radius:var(--radius);padding:16px 20px;margin:16px 0 24px;font-size:.92rem}
+.version b{color:#2ecc71}
+.hl-red{color:var(--red)} .hl-green{color:var(--green)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">📊 股市數據工具包</span>
+    <a class="navlink" href="#overview">概覽</a>
+    <a class="navlink" href="#a-stock">A股工具包</a>
+    <a class="navlink" href="#global">全球工具包</a>
+    <a class="navlink" href="#search">端點搜尋</a>
+    <a class="navlink" href="#sources">數據源</a>
+    <a class="navlink" href="#examples">使用示例</a>
+    <a class="navlink" href="#quickstart">快速開始</a>
+  </div>
+</nav>
+
+<header class="hero">
+<svg class="candles" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1200 400">
+  <g>
+    <rect x="60" y="150" width="26" height="90" fill="#f6465d"/><line x1="73" y1="110" x2="73" y2="270" stroke="#f6465d" stroke-width="3"/>
+    <rect x="120" y="200" width="26" height="70" fill="#0ecb81"/><line x1="133" y1="170" x2="133" y2="300" stroke="#0ecb81" stroke-width="3"/>
+    <rect x="180" y="120" width="26" height="110" fill="#f6465d"/><line x1="193" y1="90" x2="193" y2="260" stroke="#f6465d" stroke-width="3"/>
+    <rect x="240" y="180" width="26" height="60" fill="#f6465d"/><line x1="253" y1="150" x2="253" y2="270" stroke="#f6465d" stroke-width="3"/>
+    <rect x="300" y="140" width="26" height="80" fill="#0ecb81"/><line x1="313" y1="110" x2="313" y2="250" stroke="#0ecb81" stroke-width="3"/>
+    <rect x="360" y="90" width="26" height="130" fill="#f6465d"/><line x1="373" y1="60" x2="373" y2="250" stroke="#f6465d" stroke-width="3"/>
+    <rect x="420" y="170" width="26" height="70" fill="#0ecb81"/><line x1="433" y1="140" x2="433" y2="270" stroke="#0ecb81" stroke-width="3"/>
+    <rect x="480" y="130" width="26" height="100" fill="#f6465d"/><line x1="493" y1="100" x2="493" y2="260" stroke="#f6465d" stroke-width="3"/>
+    <rect x="540" y="200" width="26" height="60" fill="#0ecb81"/><line x1="553" y1="170" x2="553" y2="290" stroke="#0ecb81" stroke-width="3"/>
+    <rect x="600" y="110" width="26" height="120" fill="#f6465d"/><line x1="613" y1="80" x2="613" y2="260" stroke="#f6465d" stroke-width="3"/>
+    <rect x="660" y="160" width="26" height="70" fill="#0ecb81"/><line x1="673" y1="130" x2="673" y2="260" stroke="#0ecb81" stroke-width="3"/>
+    <rect x="720" y="100" width="26" height="140" fill="#f6465d"/><line x1="733" y1="70" x2="733" y2="270" stroke="#f6465d" stroke-width="3"/>
+    <rect x="780" y="190" width="26" height="60" fill="#f6465d"/><line x1="793" y1="160" x2="793" y2="280" stroke="#f6465d" stroke-width="3"/>
+    <rect x="840" y="150" width="26" height="90" fill="#0ecb81"/><line x1="853" y1="120" x2="853" y2="270" stroke="#0ecb81" stroke-width="3"/>
+    <rect x="900" y="120" width="26" height="110" fill="#f6465d"/><line x1="913" y1="90" x2="913" y2="260" stroke="#f6465d" stroke-width="3"/>
+    <rect x="960" y="180" width="26" height="70" fill="#0ecb81"/><line x1="973" y1="150" x2="973" y2="280" stroke="#0ecb81" stroke-width="3"/>
+    <rect x="1020" y="140" width="26" height="100" fill="#f6465d"/><line x1="1033" y1="110" x2="1033" y2="270" stroke="#f6465d" stroke-width="3"/>
+    <rect x="1080" y="170" width="26" height="70" fill="#0ecb81"/><line x1="1093" y1="140" x2="1093" y2="270" stroke="#0ecb81" stroke-width="3"/>
+    <rect x="1140" y="130" width="26" height="110" fill="#f6465d"/><line x1="1153" y1="100" x2="1153" y2="270" stroke="#f6465d" stroke-width="3"/>
+    <path d="M40 280 L160 240 L280 250 L400 190 L520 210 L640 150 L760 170 L880 110 L1000 130 L1160 60" fill="none" stroke="#f0b90b" stroke-width="3" opacity=".8"/>
+  </g>
+</svg>
+<div class="wrap">
+  <h1>股市數據<span class="g">工具包</span></h1>
+  <p class="tag">把分散在幾十個數據源裡的股票原始數據，整合成 AI 編程助手可以直接呼叫的工具集 —— A股 15 層 × 87 端點，全球 16 層 × 50+ 端點，全部零鑒權（iwencai 除外）。</p>
+  <div class="repo-cards">
+    <div class="repo-card">
+      <h3>📕 a-stock-data <span class="hl-red">A股全棧</span></h3>
+      <p class="note">行情 K 線 · 研報 · 市場信號 · 資金面／籌碼 · 新聞 · 財務公告 · 打板 · ETF 期權 · 輿情互動 · 宏觀利率 · 指數日曆 · 期貨大宗 · 事件驅動 · 可轉債</p>
+      <div class="badges">
+        <span class="badge gold">15 層架構</span><span class="badge gold">87 端點</span><span class="badge gold">34 數據源</span><span class="badge green">零鑒權</span><span class="badge">Python 3.9+</span>
+      </div>
+      <div class="card-links">
+        <a href="https://github.com/simonlin1212/a-stock-data" target="_blank" rel="noopener">🔗 GitHub Repo</a>
+        <a href="https://github.com/simonlin1212/a-stock-data/stargazers" target="_blank" rel="noopener">⭐ Stars</a>
+      </div>
+    </div>
+    <div class="repo-card">
+      <h3>📘 global-stock-data <span style="color:#4dd0e1">美股＋全球</span></h3>
+      <p class="note">期權 Greeks · 0DTE 資金流 · VIX 期限結構 · SEC 文件與內幕交易 · 做空數據 · 基本面 · 選股器 · 全球利率外匯 · 台灣 · 能源</p>
+      <div class="badges">
+        <span class="badge gold">16 層架構</span><span class="badge gold">50+ 端點</span><span class="badge gold">17 數據源</span><span class="badge green">零鑒權</span><span class="badge">僅需 requests</span>
+      </div>
+      <div class="card-links">
+        <a href="https://github.com/simonlin1212/global-stock-data" target="_blank" rel="noopener">🔗 GitHub Repo</a>
+        <a href="https://github.com/simonlin1212/global-stock-data/stargazers" target="_blank" rel="noopener">⭐ Stars</a>
+      </div>
+    </div>
+  </div>
+</div>
+</header>
+
+<section id="overview"><div class="wrap">
+<h2 class="sec">📋 概覽</h2>
+<p class="sub">兩個姊妹項目：<b>a-stock-data</b> 覆蓋中國 A股，<b>global-stock-data</b> 覆蓋美股＋全球。可同時安裝，互不衝突。</p>
+
+<h3 style="color:#fff;margin:24px 0 6px">A股 15 類數據覆蓋</h3>
+<table class="tbl">
+<thead><tr><th>#</th><th>類別</th><th>包含數據</th><th>主要來源</th></tr></thead>
+<tbody>
+<tr><td class="nowrap">1</td><td class="nowrap">行情／K 線</td><td>即時價、PE／PB／市值／換手率、日周月前後復權與 1~60 分鐘 K 線、某交易日全市場日線（含成交額）、復權因子、指數／ETF</td><td>騰訊、通達信官網、百度、新浪</td></tr>
+<tr><td class="nowrap">2</td><td class="nowrap">研報</td><td>個股／行業研報與 PDF、評級、三年 EPS 預測、一致預期、自然語言檢索、研報列表</td><td>東財、新浪、同花順、iwencai</td></tr>
+<tr><td class="nowrap">3</td><td class="nowrap">市場信號</td><td>強勢股與題材歸因、北向資金、板塊歸屬、資金流向、龍虎榜、限售解禁、行業排名、板塊資金流</td><td>同花順、東財</td></tr>
+<tr><td class="nowrap">4</td><td class="nowrap">資金面／籌碼</td><td>融資融券、大宗交易、股東戶數、分紅送轉、120 日資金流、籌碼分佈、ETF 份額</td><td>東財、上交所、深交所、本地計算</td></tr>
+<tr><td class="nowrap">5</td><td class="nowrap">新聞</td><td>個股新聞、財聯社電報、7×24 快訊、新聞聯播文字稿</td><td>東財、財聯社、華爾街見聞、央視網</td></tr>
+<tr><td class="nowrap">6</td><td class="nowrap">基礎財務</td><td>季報快照、F10、財報三表、估值歷史、上市退市日、申萬行業變遷、ST 名單</td><td>通達信（mootdx）、新浪、baostock、申萬、東財</td></tr>
+<tr><td class="nowrap">7</td><td class="nowrap">公告</td><td>滬深北全量公告</td><td>巨潮</td></tr>
+<tr><td class="nowrap">8</td><td class="nowrap">打板</td><td>漲停／炸板／跌停／昨漲停池、漲停原因、重點監控池、日內異動</td><td>東財、同花順</td></tr>
+<tr><td class="nowrap">9</td><td class="nowrap">ETF 期權</td><td>T 型報價、希臘字母、隱含波動率</td><td>新浪</td></tr>
+<tr><td class="nowrap">10</td><td class="nowrap">輿情互動</td><td>互動易（深市）、上證 e 互動（滬市）、同花順熱榜、東財人氣榜、概念命中</td><td>巨潮、上證 e 互動、同花順、東財</td></tr>
+<tr><td class="nowrap">11</td><td class="nowrap">宏觀與利率</td><td>社融、PMI、國債與信用債收益率曲線、回購定盤利率、LPR、全球宏觀日曆</td><td>人民銀行、國家統計局、中債、中國貨幣網、東財、華爾街見聞</td></tr>
+<tr><td class="nowrap">12</td><td class="nowrap">指數與交易日曆</td><td>中證／國證成分與權重、中證 PE 與股息率、深交所交易日曆</td><td>中證指數、國證指數、深交所</td></tr>
+<tr><td class="nowrap">13</td><td class="nowrap">期貨與大宗商品</td><td>期貨日行情、商品與股指期權、會員持倉排名、實時期貨、A50 期指、上海金現貨</td><td>上期所、上期能源、鄭商所、中金所、廣期所、新浪、上金所</td></tr>
+<tr><td class="nowrap">14</td><td class="nowrap">事件驅動</td><td>業績預告、機構調研、股東增減持、股票回購、股權質押、新股申購日曆</td><td>東財</td></tr>
+<tr><td class="nowrap">15</td><td class="nowrap">可轉債</td><td>條款、轉股價、轉股價值、溢價率、上市／摘牌狀態</td><td>東財</td></tr>
+</tbody></table>
+<p class="note">另有 5 個備胎（官方龍虎榜、新浪資金流、公告、滬深官方兩融、北交所當前行情）：主源被封時降級用。</p>
+
+<h3 style="color:#fff;margin:28px 0 6px">全球工具包核心能力</h3>
+<table class="tbl">
+<thead><tr><th>能力</th><th>內容</th></tr></thead>
+<tbody>
+<tr><td class="nowrap"><b>Price 行情</b></td><td>美股／港股即時報價（25~78 字段）；日／週／月／分鐘 K 線，美股回溯至 1984；日本／台灣／韓國／印度／歐洲透過代碼後綴支援</td></tr>
+<tr><td class="nowrap"><b>Value 價值</b></td><td>財務三表＋關鍵指標、Yahoo 23 模組（分析師／機構持倉）、SEC EDGAR 503 項 GAAP 指標</td></tr>
+<tr><td class="nowrap"><b>Flow &amp; Positioning 資金流與倉位</b> ⭐</td><td>CBOE 期權完整 Greeks＋IV＋0DTE＋異常資金流偵測；FINRA 全市場每日做空量；VIX 自 1990 年起＋期限結構（正價差／逆價差）；FINRA 做空持倉（每月兩次）＋覆蓋天數</td></tr>
+<tr><td class="nowrap"><b>Filings &amp; Events 文件與事件</b> ⭐</td><td>EDGAR 當日 Form 4／8-K／13F；2001 年起全文搜尋；Form 4 內幕交易逐筆解析（價格／股數／是否 10b5-1）；13F 機構季度持倉</td></tr>
+<tr><td class="nowrap"><b>Screener &amp; Macro 選股與宏觀</b> ⭐</td><td>EDGAR frames：任意 XBRL 標籤一呼叫全市場免費篩選；美債收益率曲線（1M~30Y）；CFTC COT 持倉；Nasdaq 財報日曆</td></tr>
+<tr><td class="nowrap"><b>Global Rates &amp; FX 全球利率外匯</b> ⭐</td><td>BIS 38 家央行政策利率（一呼叫）；歐央行 EUR 匯率／三大關鍵利率／歐元區收益率曲線；紐約聯儲 SOFR／EFFR；聯儲會 H.10（美元兌 23 貨幣）／H.6（M1·M2）；財政部拍賣＋聯邦債務</td></tr>
+<tr><td class="nowrap"><b>Taiwan 台灣</b> ⭐</td><td>TWSE＋TPEx 官方開放 API：最新報價、本益比／殖利率／股價淨值比、月營收、公司簡介、融資融券、除權息（商業用途 OK）</td></tr>
+<tr><td class="nowrap"><b>Energy 能源</b> ⭐</td><td>EIA 每週原油（商業＋戰略儲備）／汽油／餾分油／天然氣庫存；WTI（自 1986）／Brent／Henry Hub 每日現貨價</td></tr>
+<tr><td class="nowrap"><b>Tools 工具</b></td><td>中英文股票搜尋；全市場清單（美股 5,925+／港股 18,000+）；個股新聞；Ticker ↔ CIK 互查</td></tr>
+</tbody></table>
+<div class="disclaimer">❓ <b>兩者是什麼關係？</b> —— 姊妹項目。<b>a-stock-data</b> 專做中國 A股（含港股行情引用），<b>global-stock-data</b> 專做美股、港股及全球市場。可同時安裝，互不衝突；兩邊都係單一自包含 SKILL.md＋內嵌 Python，任何支援上下文注入的 AI 編程助手都用得。</div>
+</div></section>
+
+<section id="a-stock"><div class="wrap">
+<h2 class="sec">📕 A股工具包 · a-stock-data</h2>
+<p class="sub">十五層架構 · 87 個端點 · 34 個數據源 · <span class="hl-green">零鑒權（iwencai 除外）</span> · 兼容 Claude Code／Codex／OpenClaw／WorkBuddy／Muse／Grok Bot</p>
+
+<div class="pre">A 股全棧數據 · 十五層架構 · <span class="hl">V3.10.2</span>
+│  優先順序：騰訊／交易所官方優先（不封 IP）；mootdx 行情命令 2026-09 起失效，只用於財務與 F10；
+│  東財只用於獨有數據，已內置限流防封
+├── <span class="hl">行情層</span>    騰訊 + 通達信官網 + 百度 + 新浪   即時價／PE／PB／市值＋K線(MA5/10/20)＋復權因子
+│                                    ＋日周月前後復權＋1~60分鐘K線＋全市場當日日線＋當日逐筆成交
+├── <span class="hl">研報層</span>    東財 reportapi + 同花順 + iwencai + 新浪   個股／行業研報／PDF／一致預期／NL搜索
+├── <span class="hl">信號層</span>    同花順 + 東財                   強勢股＋題材歸因＋北向資金＋板塊歸屬＋資金流向＋龍虎榜＋解禁＋行業排名＋板塊資金流
+├── <span class="hl">資金面/籌碼</span> 東財 datacenter + push2         融資融券＋大宗交易＋股東戶數＋分紅送轉＋120日資金流
+│             本地計算 + 上交所 + 深交所      籌碼分佈 CYQ＋ETF 份額
+├── <span class="hl">新聞層</span>    東財 + 財聯社 + 華爾街見聞 + 央視網   個股新聞／財聯社電報／全球資訊／7×24快訊／新聞聯播
+├── <span class="hl">基礎數據+公告</span> mootdx + 東財 + 新浪         季報37字段／F10／財報三表
+│              + baostock + 申萬 + 巨潮        估值歷史／上市退市日／申萬行業變遷史／ST名單／滬深北全量公告
+├── <span class="hl">打板層</span>    東財 push2ex + 同花順           漲停池／炸板／跌停／昨漲停／漲停原因題材／連板梯隊＋重點監控池＋日內異動池
+├── <span class="hl">ETF期權層</span>  新浪 hq.sinajs                  ETF期權 T型報價／希臘字母／隱含波動率 IV
+├── <span class="hl">輿情互動層</span> 巨潮互動易 + 上證e互動 + 同花順 + 東財   互動易(深市)／上證e互動(滬市)／熱榜／人氣榜／概念命中
+├── <span class="hl">宏觀利率層</span> 人民銀行 + 統計局 + 中債 + 貨幣網 + 東財 + 華爾街見聞
+│                                    社融／PMI／收益率曲線／回購定盤利率／LPR／全球宏觀日曆
+├── <span class="hl">指數日曆</span>  中證指數 + 國證指數 + 深交所     指數成分／權重／PE與股息率／官方交易日曆
+├── <span class="hl">期貨大宗層</span> 上期所 + 上期能源 + 鄭商所 + 中金所 + 廣期所 + 新浪 + 上金所
+│                                    期貨日行情／商品與股指期權／持倉排名／實時期貨／A50／上海金＋期貨日K
+├── <span class="hl">事件驅動層</span> 東財 datacenter                 業績預告／機構調研／增減持／回購／股權質押／新股申購
+└── <span class="hl">可轉債層</span>  東財 datacenter                 條款／轉股價值／溢價率／上市摘牌狀態
+</div>
+
+<div class="version"><b>🆕 V3.10.2（2026-10-11）</b>：修正 full_valuation() 的 PE 消化年數 —— 前向 PE 高於 30x 而預測盈利不增長（或下一年預測缺失）時，現回傳 <code>None</code>（無法估算）而非 0 年；當年 EPS 缺失或非正同樣回傳 <code>None</code>。<br>
+<b>V3.10.0（2026-09-22）</b>：通達信公開伺服器 K 線／盤口／逐筆命令失效後，行情層來源重排（騰訊 → 騰訊 K 線 → 通達信盤後包 → 騰訊逐筆），新增騰訊當日逐筆成交（替代 mootdx 逐筆）與新浪期貨日 K（補上大商所）。<br>
+<b>V3.9.0（2026-09-20）</b>：新增期貨與大宗商品、事件驅動、可轉債三層，共增 25 個入口。</div>
+
+<div class="layer"><h4><span class="n">1</span>行情層（即時，不封 IP）</h4><div class="src">來源：騰訊 + 通達信官網 + 百度 + 新浪</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">騰訊財經</td><td>PE(TTM)／PB／總市值／流通市值／換手率／漲跌停價／指數／ETF</td></tr>
+<tr><td class="nowrap">騰訊 K 線</td><td>滬深日／週／月前後復權＋1／5／15／30／60 分鐘 K 線，三個入口輪換；不含北交所</td></tr>
+<tr><td class="nowrap">通達信盤後包</td><td>某交易日滬深北全市場日線（含成交額），單個 zip 約 2~3MB</td></tr>
+<tr><td class="nowrap">騰訊逐筆成交</td><td>最近一交易日全部分筆（約 3 秒一筆）：時間／價格／量／額／買賣方向，滬深個股＋ETF，不含北交所；收盤後自動以成交額核對完整性</td></tr>
+<tr><td class="nowrap">百度 K 線</td><td>日 K 線＋MA5／MA10／MA20 均價直接返回</td></tr>
+<tr><td class="nowrap">新浪復權因子</td><td>qfq／hfq 因子序列，可套用至不復權 K 線</td></tr>
+<tr><td class="nowrap">mootdx 行情（留檔）</td><td>⚠️ 2026-09 起通達信公開伺服器返回空；K 線改用騰訊 K 線／盤後包，逐筆改用騰訊逐筆</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">2</span>研報層</h4><div class="src">來源：東財 reportapi + 同花順 + iwencai + 新浪</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">東財 reportapi</td><td>個股研報列表＋評級＋三年 EPS 預測</td></tr>
+<tr><td class="nowrap">東財行業研報</td><td>行業研報列表（同端點 qType=1）＋行業名／行業碼＋評級</td></tr>
+<tr><td class="nowrap">東財 PDF 下載</td><td>完整研報 PDF（個股／行業通用，已處理 Referer 鑒權）</td></tr>
+<tr><td class="nowrap">同花順一致預期</td><td>機構一致預期 EPS</td></tr>
+<tr><td class="nowrap">iwencai NL 搜索</td><td>自然語言跨主題研報檢索（唯一需要 API Key 的來源）</td></tr>
+<tr><td class="nowrap">新浪研報列表</td><td>標題／類型／機構／研究員／日期；東財之外的第二來源（無評級與目標價）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">3</span>信號層</h4><div class="src">來源：同花順 + 東財</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">同花順熱點</td><td>當日強勢股＋題材歸因 reason tags（編輯部人工標註）</td></tr>
+<tr><td class="nowrap">同花順北向（即時）</td><td>滬股通分鐘級流向</td></tr>
+<tr><td class="nowrap">東財板塊歸屬</td><td>個股所屬全部板塊（行業／概念／地域混合）＋BK 碼＋當日漲跌幅＋龍頭股</td></tr>
+<tr><td class="nowrap">東財資金流向</td><td>主力／大單／中單／小單／超大單分鐘級淨流入</td></tr>
+<tr><td class="nowrap">龍虎榜席位</td><td>上榜記錄＋買賣席位 TOP5＋機構動向</td></tr>
+<tr><td class="nowrap">全市場龍虎榜</td><td>每日全市場上榜股票＋淨買額排名＋上榜原因</td></tr>
+<tr><td class="nowrap">限售解禁日曆</td><td>歷史解禁＋未來 90 天待解禁預警</td></tr>
+<tr><td class="nowrap">行業板塊排名</td><td>東財行業漲跌／上漲下跌家數</td></tr>
+<tr><td class="nowrap">板塊資金流向</td><td>行業／概念／地域 × 今日／5日／10日主力淨流入額／淨佔比＋超大／大／中／小單四檔＋領漲股</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">4</span>資金面／籌碼層</h4><div class="src">來源：東財 datacenter + push2；本地計算 + 上交所 + 深交所</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">融資融券明細</td><td>日級融資餘額／買入／償還＋融券餘額／賣出／償還</td></tr>
+<tr><td class="nowrap">大宗交易</td><td>成交價／量＋買賣方營業部＋溢價率</td></tr>
+<tr><td class="nowrap">股東戶數變化</td><td>季度股東數＋環比變化＋戶均持股（籌碼集中度）</td></tr>
+<tr><td class="nowrap">分紅送轉歷史</td><td>每股派息／送股／轉增＋進度狀態</td></tr>
+<tr><td class="nowrap">個股資金流 120 日</td><td>主力／大單／中單／小單日級淨流入</td></tr>
+<tr><td class="nowrap">籌碼分佈 CYQ</td><td>獲利比例／平均成本／90-70 成本區間與集中度／籌碼峰（本地計算）</td></tr>
+<tr><td class="nowrap">ETF 份額</td><td>上交所按日歸檔／深交所當前快照，單位：萬份</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">5</span>新聞層</h4><div class="src">來源：東財 + 財聯社 + 華爾街見聞 + 央視網</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">個股新聞</td><td>東財個股新聞流</td></tr>
+<tr><td class="nowrap">財聯社電報</td><td>全市場即時快訊（v1 API＋本地簽名，零 key；與全球資訊互備）</td></tr>
+<tr><td class="nowrap">全球資訊</td><td>東財全球財經資訊（7×24）</td></tr>
+<tr><td class="nowrap">華爾街見聞快訊</td><td>按頻道 7×24 快訊，帶翻頁游標</td></tr>
+<tr><td class="nowrap">新聞聯播</td><td>當日條目標題＋文字稿（央視網，約當晚 20:00 後更新）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">6</span>基礎數據＋公告</h4><div class="src">來源：mootdx + 東財 + 新浪 + baostock + 申萬；公告：巨潮</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">季報快照</td><td>37 字段（EPS／ROE／淨利潤／主營收入…）</td></tr>
+<tr><td class="nowrap">F10 文本</td><td>「最新提示」摘要（2026-09 起伺服器端只剩此類）</td></tr>
+<tr><td class="nowrap">東財個股信息</td><td>行業／總股本／流通股／市值／上市日期</td></tr>
+<tr><td class="nowrap">新浪財報三表</td><td>資產負債表／利潤表／現金流量表</td></tr>
+<tr><td class="nowrap">巨潮公告</td><td>滬深北交易所全量公告</td></tr>
+<tr><td class="nowrap">估值歷史</td><td>日頻 PE／PB／PS／PCF＋換手率＋停牌＋ST，可回溯至 2016；不支援北交所</td></tr>
+<tr><td class="nowrap">上市／退市日</td><td>ipoDate／outDate／狀態（唯一零鑒權退市日源）</td></tr>
+<tr><td class="nowrap">申萬行業變遷史</td><td>每隻股票歷次行業調整（消除前視偏差；僅代碼無中文名）</td></tr>
+<tr><td class="nowrap">ST 名單</td><td>滬深京 ST／*ST 當日名單＋現價；東財不可達時降級 baostock</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">7</span>打板層</h4><div class="src">來源：東財 push2ex + 同花順</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">東財漲停池</td><td>連板數／幾天幾板／封板資金／炸板次數／首末封板時間／所屬行業</td></tr>
+<tr><td class="nowrap">東財炸板池</td><td>曾漲停後開板＋振幅／漲速</td></tr>
+<tr><td class="nowrap">東財跌停池</td><td>封單資金／連續跌停天數／開板次數／板上成交額</td></tr>
+<tr><td class="nowrap">東財昨日漲停池</td><td>昨漲停今表現（自算晉級率／賺錢效應）</td></tr>
+<tr><td class="nowrap">同花順漲停揭秘</td><td>漲停原因題材／封板成功率／一字·換手·T 字板／封單額</td></tr>
+<tr><td class="nowrap">東財重點監控池</td><td>交易所風險警示／重點監控名單＋生效時間窗</td></tr>
+<tr><td class="nowrap">東財日內異動池</td><td>嚴重異常波動明細＋12 條異動規則解釋</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">8</span>ETF 期權層</h4><div class="src">來源：新浪 hq.sinajs</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">期權合約清單</td><td>50ETF／300ETF／科創 50ETF／500ETF 各月份認購認沽合約</td></tr>
+<tr><td class="nowrap">T 型報價</td><td>買賣五檔／持倉量／行權價／最新價／成交量額</td></tr>
+<tr><td class="nowrap">希臘字母＋IV</td><td>Delta／Gamma／Theta／Vega／隱含波動率／理論價值（交易所預算，免本地算 BSM）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">9</span>輿情互動層</h4><div class="src">來源：巨潮互動易 + 上證 e 互動 + 同花順 + 東財</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">互動易問答</td><td>投資者提問＋公司官方回覆（巨潮，覆蓋深市）</td></tr>
+<tr><td class="nowrap">上證 e 互動</td><td>滬市投資者提問＋公司回覆</td></tr>
+<tr><td class="nowrap">同花順熱榜</td><td>人氣值／概念標籤／排名變化</td></tr>
+<tr><td class="nowrap">東財人氣榜</td><td>排名＋排名變化＋名稱價格</td></tr>
+<tr><td class="nowrap">東財個股概念命中</td><td>這隻票當下被市場歸入哪些概念在炒＋熱度值</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">10</span>宏觀利率層</h4><div class="src">來源：人民銀行 + 國家統計局 + 中債 + 中國貨幣網 + 東財 + 華爾街見聞</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">人民銀行社融</td><td>社會融資規模增量月度 12 列（人民幣貸款／委託／信託／未貼現匯票／企業債／政府債／股票融資／ABS／核銷）</td></tr>
+<tr><td class="nowrap">國家統計局 PMI</td><td>製造業／非製造業商務活動／綜合產出＋大中小型企業分檔</td></tr>
+<tr><td class="nowrap">中債收益率曲線</td><td>國債／商業銀行 AAA／中短期票據 AAA，3 個月~30 年關鍵期限</td></tr>
+<tr><td class="nowrap">回購定盤利率</td><td>FR001／FR007／FR014 與 FDR 同期限（中國貨幣網）</td></tr>
+<tr><td class="nowrap">LPR</td><td>1 年／5 年全歷史（含 2013~2019 舊機制逐日報價）</td></tr>
+<tr><td class="nowrap">全球宏觀日曆</td><td>公佈值／預期／前值／修正值／重要性（華爾街見聞）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">11</span>指數日曆</h4><div class="src">來源：中證指數 + 國證指數 + 深交所</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">指數成分</td><td>中證最新成分、國證最近公佈的月末成分；保留源側日期，不提供歷史時點回填</td></tr>
+<tr><td class="nowrap">指數權重</td><td>中證／國證最近公佈權重；單位為百分数，不假定與成分同日</td></tr>
+<tr><td class="nowrap">指數估值</td><td>中證兩種股本口徑的 PE 和股息率；近期文件，不含 PB、不承諾全歷史</td></tr>
+<tr><td class="nowrap">官方交易日曆</td><td>深交所完整自然月交易標誌</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">12</span>期貨大宗層</h4><div class="src">來源：上期所 + 上期能源 + 鄭商所 + 中金所 + 廣期所 + 新浪 + 上金所</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">期貨日行情</td><td>上期所／上期能源／鄭商所／中金所／廣期所官方收盤數據：開高低收、結算價、成交量、持倉量及變化、成交額</td></tr>
+<tr><td class="nowrap">期權日行情</td><td>商品期權＋股指期權：行權價、結算價、成交持倉、Delta、隱含波動率（中金所不公佈 Delta 和 IV）</td></tr>
+<tr><td class="nowrap">會員持倉排名</td><td>成交量／持買單／持賣單前 20 名會員及增減</td></tr>
+<tr><td class="nowrap">實時期貨</td><td>新浪實時價、買賣一檔，覆蓋六家期貨交易所（大商所品種走這裡；漲跌停價只有中金所品種有）</td></tr>
+<tr><td class="nowrap">期貨日 K</td><td>新浪逐日 K 線：主力連續（最早 2005 年）或具體合約，六家交易所全覆蓋、含大商所</td></tr>
+<tr><td class="nowrap">A50 期指</td><td>富時中國 A50 連續合約報價</td></tr>
+<tr><td class="nowrap">上海金現貨</td><td>上金所 Au99.99／Au(T+D)／Ag(T+D)／Pt99.95 等日線</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">13</span>事件驅動層</h4><div class="src">來源：東財 datacenter</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">業績預告</td><td>預告類型、預計金額與變動幅度區間、上年同期、變動原因</td></tr>
+<tr><td class="nowrap">機構調研</td><td>調研匯總（接待機構數、方式、地點）或逐機構明細</td></tr>
+<tr><td class="nowrap">股東增減持</td><td>股東、方向、變動股數與比例、變動後持股、均價、渠道</td></tr>
+<tr><td class="nowrap">股票回購</td><td>方案價格上限、股數與金額區間、已回購股數與金額、進度</td></tr>
+<tr><td class="nowrap">股權質押</td><td>中國結算週度質押比例、質押股數與市值、筆數（只覆蓋滬深）</td></tr>
+<tr><td class="nowrap">新股申購日曆</td><td>申購／中簽／繳款／上市日期、發行價與市盈率、中簽率、首日表現</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">14</span>可轉債層</h4><div class="src">來源：東財 datacenter</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">可轉債</td><td>正股、評級、發行規模、轉股價、轉股價值、溢價率、上市／到期／摘牌日與狀態</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">15</span>備用源（主源被封時降級）</h4><div class="src">來源：交易所官方／新浪／同花順等獨立風控面</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">官方龍虎榜備胎</td><td>上交所＋深交所官方接口，零鑒權權威一手，含營業部席位（東財被封時用）</td></tr>
+<tr><td class="nowrap">資金流備胎</td><td>新浪日度四檔單淨額（超大／大／中／小單＋淨流入）</td></tr>
+<tr><td class="nowrap">公告備胎</td><td>深市走深交所官方、滬市走東財，均帶 PDF 直鏈（巨潮被封時用）</td></tr>
+<tr><td class="nowrap">官方兩融備胎</td><td>上交所／深交所分開查詢，金額元、餘量股／份</td></tr>
+<tr><td class="nowrap">北交所行情備胎</td><td>全板或單票 OHLC／成交量額／五檔快照，強制核對交易日</td></tr>
+</tbody></table></div>
+</div></section>
+
+<section id="global"><div class="wrap">
+<h2 class="sec">📘 全球工具包 · global-stock-data</h2>
+<p class="sub">十六層架構 · 50+ 端點 · 17 數據源 · <span class="hl-green">零鑒權</span>（SEC 需申報 User-Agent）· 僅需 <code>requests</code> · 兼容 Claude Code／Codex／OpenClaw</p>
+
+<div class="pre">US 全棧數據 · 十六層架構 · <span class="hl">V2.2</span>
+│
+├── <span class="hl">行情</span>         Sina + Tencent + Eastmoney push2      即時報價 25~78 字段（美／港）
+├── <span class="hl">K 線</span>          Sina(回溯至1984) + Yahoo chart        日／週／月／分鐘；日台韓印歐加後綴
+├── <span class="hl">技術指標</span>      MA/EMA + MACD + RSI + KDJ + 布林通道   純 Python，零額外依賴
+├── <span class="hl">基本面</span>        Eastmoney + Yahoo + SEC XBRL          財報＋關鍵指標＋持倉
+├── <span class="hl">資金流</span>        Eastmoney push2his                  日級 主力／大單／中單／小單
+├── <span class="hl">期權</span>          Yahoo crumb                         期權鏈（美股；無 Greeks）
+├── <span class="hl">SEC 文件</span>      EDGAR submissions + XBRL            10-K／10-Q／8-K＋503 項 GAAP 指標（美股）
+└── <span class="hl">工具</span>          Eastmoney + Yahoo + SEC CIK           搜索＋全市場清單＋新聞＋ticker↔CIK
+━━━ V2.0 新增（官方源優先） ━━━
+├── <span class="hl">期權·CBOE</span>    cdn.cboe.com 官方行情      ⭐ 完整鏈＋IV＋delta/gamma/vega/theta/rho＋0DTE＋異常資金流
+├── <span class="hl">做空量</span>        FINRA Reg SHO               ⭐ 全市場每日做空量（12,112 標的）＋序列
+├── <span class="hl">文件流</span>        EDGAR 日度索引 + FTS        ⭐ Form 4／8-K／13F 當日＋2001 年起全文搜尋
+├── <span class="hl">市場篩選器</span>     EDGAR frames               ⭐ 任意 XBRL 標籤全市場篩選（免費）
+└── <span class="hl">宏觀／日曆</span>     Treasury + CFTC + Nasdaq   ⭐ 收益率曲線(1M~30Y)＋COT＋財報日曆
+━━━ V2.1 新增 ━━━
+└── <span class="hl">全球利率／外匯</span> BIS + ECB + NY Fed + Fed + Treasury  ⭐ 38 家央行政策利率＋EUR/USD＋SOFR/EFFR＋歐元曲線＋拍賣
+━━━ V2.2 新增 ━━━
+├── <span class="hl">波動率</span>        CBOE 指數文件              ⭐ VIX 自 1990 年起＋期限結構＋VVIX/SKEW/OVX/GVZ
+├── <span class="hl">做空持倉</span>      FINRA，每月兩次            ⭐ 全美未平倉空單（22,595 標的）＋覆蓋天數＋排名
+├── <span class="hl">內幕／13F</span>     SEC Form 4 + 13F           ⭐ 內幕交易逐筆＋季度機構持倉
+├── <span class="hl">台灣</span>          TWSE + TPEx 官方開放 API    ⭐ 最新報價＋本益比＋月營收（商業可用）
+└── <span class="hl">能源</span>          US EIA                      ⭐ 每週原油／天然氣庫存＋WTI／Brent／Henry Hub 現貨價
+</div>
+
+<div class="version"><b>🆕 V2.2</b>：CBOE 波動率指數（VIX 自 1990 年起）與 VIX 期限結構；FINRA 做空持倉（每月兩次，22,595 標的，覆蓋天數）；SEC Form 4 內幕交易逐筆解析與 13F 機構持倉解析；台灣證交所／櫃買中心官方開放 API（最新報價、本益比、月營收、融資融券）；美國 EIA 每週原油／天然氣庫存＋現貨價。<br>
+<b>V2.1</b>：全球利率與外匯層 —— BIS 38 家央行政策利率一呼叫、歐央行匯率／關鍵利率／歐元區收益率曲線、紐約聯儲 SOFR／EFFR、聯儲會 H.10／H.6、財政部拍賣＋聯邦債務；Yahoo K 線回傳真實完整歷史日線（交易所當地日期），週／月／季線由日線合成。<br>
+<b>V2.0</b>：官方源優先 —— CBOE 期權完整 Greeks＋0DTE 資金流、FINRA 全市場每日做空量、SEC EDGAR 文件流＋免費全市場篩選器、美債收益率曲線＋CFTC COT＋財報日曆；每個來源標註合規等級並引用條款原文。</div>
+
+<div class="layer"><h4><span class="n">1</span>行情 Market Data</h4><div class="src">來源：Sina + Tencent + Eastmoney push2 · 合規等級 <span class="tier C">C</span></div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">即時報價</td><td>Sina／Tencent／Eastmoney push2，美股／港股即時報價，25~78 字段（價格、漲跌、PE、成交量等）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">2</span>K 線</h4><div class="src">來源：Sina（回溯至 1984）+ Yahoo chart · 合規等級 <span class="tier C">C</span>／<span class="tier D">D</span></div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">Sina／Yahoo K 線</td><td>日／週／月／分鐘 K 線，美股回溯至 1984；Yahoo 回傳真實完整歷史日線（標普 500 回溯至 1927），週／月／季線由日線合成，日期為交易所當地時區</td></tr>
+<tr><td class="nowrap">海外市場</td><td>日本 <code>.T</code>／台灣 <code>.TW</code>／韓國 <code>.KS</code>／印度 <code>.NS</code>／倫敦 <code>.L</code>／德國 <code>.DE</code> 等透過代碼後綴支援（Yahoo，Tier D）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">3</span>技術指標 Technical Indicators</h4><div class="src">來源：本地純 Python 計算 · 零額外依賴</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">技術指標</td><td>MA／EMA＋MACD＋RSI＋KDJ＋布林通道，純 Python 本地計算，零額外依賴</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">4</span>基本面 Fundamentals</h4><div class="src">來源：Eastmoney + Yahoo + SEC XBRL</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">東財財報</td><td>財務三表＋GMAININDICATOR 關鍵指標（美股 49 字段／港股 75 字段，中英雙語）</td></tr>
+<tr><td class="nowrap">Yahoo quoteSummary</td><td>23 模組：財務、分析師預測、機構持倉等</td></tr>
+<tr><td class="nowrap">SEC XBRL</td><td>503 項 GAAP 結構化財務指標（美股）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">5</span>資金流 Fund Flow</h4><div class="src">來源：Eastmoney push2his · 合規等級 <span class="tier C">C</span></div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">日級資金流</td><td>每日主力／大單／中單／小單資金流向</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">6</span>期權 Options · CBOE ⭐</h4><div class="src">來源：cdn.cboe.com 官方行情（CBOE）· 合規等級 <span class="tier C">C</span>（需 Cboe 事先批准）</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">CBOE 官方期權鏈</td><td>完整期權鏈＋隱含波動率 IV＋delta／gamma／vega／theta／rho，支援 <b>0DTE</b> 過濾與異常資金流偵測（成交量／持倉量 &gt; 1 即新倉位）</td></tr>
+<tr><td class="nowrap">Yahoo 備用</td><td>期權鏈、全部到期日 —— 無 Greeks</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">7</span>波動率 Volatility ⭐（V2.2）</h4><div class="src">來源：CBOE 指數文件 · 合規等級 <span class="tier C">C</span></div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">vol_index_history()</td><td>每日 VIX（自 1990 年起）／VIX1D／VIX9D／VIX3M／VIX6M／VIX1Y／VVIX／SKEW／OVX／GVZ 等</td></tr>
+<tr><td class="nowrap">vix_term_structure()</td><td>各期限最新 VIX、曲線處於正價差（contango）或逆價差（backwardation），以及長短期利差</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">8</span>做空量 Short Volume ⭐</h4><div class="src">來源：FINRA Reg SHO · 合規等級 <span class="tier B">B</span>（商用前先核實）</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">FINRA 每日做空量</td><td>全市場每日做空成交（12,112 個標的），個股序列＋比率排名（注意：此為當日做空成交，非未平倉空單）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">9</span>做空持倉 Short Interest ⭐（V2.2）</h4><div class="src">來源：FINRA · 合規等級 <span class="tier B">B</span></div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">short_interest() 系列</td><td>全美未平倉空單，每月兩次（22,595 個標的），含覆蓋天數（days to cover）、與上期變化</td></tr>
+<tr><td class="nowrap">short_interest_ranking()</td><td>按覆蓋天數／空單股數／變化幅度排名</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">10</span>文件流 Filing Stream ⭐</h4><div class="src">來源：SEC EDGAR · 合規等級 <span class="tier S">S</span>（申報 User-Agent，上限 10 req/s）</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">EDGAR 日度索引</td><td>當日 Form 4／8-K／13F／144（單日約 547／370／261／118 份）</td></tr>
+<tr><td class="nowrap">EDGAR 全文搜尋</td><td>搜尋 2001 年起所有文件正文（例如：哪家公司在 8-K 最早提到「HBM4」）</td></tr>
+<tr><td class="nowrap">submissions／XBRL</td><td>文件列表＋結構化財務（503 項 GAAP 指標）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">11</span>內幕交易／13F Insiders ⭐（V2.2）</h4><div class="src">來源：SEC Form 4 + 13F · 合規等級 <span class="tier S">S</span></div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">insider_trades() Form 4 解析</td><td>內幕交易逐筆：交易日、交易類型、股數、價格、金額、交易後持股、文件是否勾選 10b5-1；另附公開市場買賣匯總</td></tr>
+<tr><td class="nowrap">holdings_13f() 13F 解析</td><td>機構季度持倉，按市值排序＋權重，與封面總額對賬；2023 年前千元單位已換算為美元</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">12</span>市場篩選器 Market Screener ⭐</h4><div class="src">來源：SEC EDGAR frames · 合規等級 <span class="tier S">S</span></div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">EDGAR frames</td><td>任意 XBRL 標籤一呼叫全市場篩選 —— 免費選股器（CY2025Q1 淨利潤覆蓋 5,309 家公司）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">13</span>宏觀／日曆 Macro / Calendar ⭐</h4><div class="src">來源：Treasury（<span class="tier S">S</span>）+ CFTC（<span class="tier S">S</span>）+ Nasdaq（<span class="tier D">D</span>）</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">美債收益率曲線</td><td>1 個月～30 年期國債收益率（財政部）</td></tr>
+<tr><td class="nowrap">CFTC COT</td><td>交易商持倉報告（期貨大戶多空倉位）</td></tr>
+<tr><td class="nowrap">財報日曆</td><td>Nasdaq 財報日曆：盤前／盤後公佈＋EPS 預期（Tier D，個人研讀）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">14</span>全球利率／外匯 Global Rates &amp; FX ⭐（V2.1）</h4><div class="src">來源：BIS + ECB + NY Fed + Fed + Treasury · 全部 <span class="tier S">S</span>（部分需註明來源）</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">BIS policy_rates()</td><td>38 家央行政策利率（48 個經濟體），一呼叫全取</td></tr>
+<tr><td class="nowrap">ECB ecb_fx()／ecb_key_rates()／ecb_yield_curve()／ecb_series()</td><td>EUR 參考匯率・三大關鍵利率・歐元區公債收益率曲線（AAA 或全發行人）・任意 ECB 序列</td></tr>
+<tr><td class="nowrap">NY Fed nyfed_rates()</td><td>SOFR／EFFR／OBFR／TGCR／BGCR（含分位數與成交量）；SOFR 平均值與指數</td></tr>
+<tr><td class="nowrap">Fed Board fed_data()</td><td>H.10 美元兌 23 種貨幣・H.6 M1／M2 貨幣供給</td></tr>
+<tr><td class="nowrap">Treasury fiscal_data()</td><td>拍賣結果（得標利率、投標倍數）與即將拍賣日程・每日聯邦債務・平均利率・財政部公佈匯率</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">15</span>台灣 Taiwan ⭐（V2.2）</h4><div class="src">來源：TWSE + TPEx 官方開放 API · 合規等級 <span class="tier S">S</span>（商業用途 OK，政府開放資料授權）</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">tw_stock()</td><td>單一台股最新報價＋本益比／股價淨值比／殖利率；上市／上櫃自動判斷</td></tr>
+<tr><td class="nowrap">tw_market()</td><td>全市場或單一個股：報價・估值・月營收・公司簡介・融資融券・除權息通知・股利決議（股利：僅上市）—— 皆為最新交易日（台股歷史 K 線用 Yahoo <code>.TW</code>／<code>.TWO</code>）</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">16</span>能源 Energy ⭐（V2.2）</h4><div class="src">來源：US EIA · 合規等級 <span class="tier S">S</span>／<span class="tier B">B</span></div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">energy_inventories()</td><td>每週原油（商業＋戰略儲備）／汽油／餾分油等庫存；全美及分區天然氣庫存 vs 五年平均（Tier S，公有領域）</td></tr>
+<tr><td class="nowrap">energy_prices()</td><td>WTI（自 1986）／Brent（自 1987）原油現貨，美元／桶；Henry Hub 天然氣（自 1997）。Tier B：價格源自 Refinitiv（LSEG）經 EIA 轉載，商用或轉發前先核實</td></tr>
+</tbody></table></div>
+
+<div class="layer"><h4><span class="n">—</span>工具 Tools</h4><div class="src">來源：Eastmoney + Yahoo + SEC CIK</div>
+<table class="tbl"><thead><tr><th>端點</th><th>數據說明</th></tr></thead><tbody>
+<tr><td class="nowrap">股票搜索</td><td>中英文股票搜尋</td></tr>
+<tr><td class="nowrap">全市場清單</td><td>美股 5,925+／港股 18,000+ 全市場股票列表</td></tr>
+<tr><td class="nowrap">個股新聞</td><td>按代碼取新聞</td></tr>
+<tr><td class="nowrap">Ticker ↔ CIK</td><td>股票代碼與 SEC CIK 互查</td></tr>
+</tbody></table></div>
+</div></section>
+
+<section id="search"><div class="wrap">
+<h2 class="sec">🔍 端點搜尋</h2>
+<p class="sub">一次搜尋，同時橫跨 <b>A股工具包</b> 與 <b>全球工具包</b> 全部端點 —— 輸入關鍵字（例如「龍虎榜」「VIX」「期權」「股息」「做空」「研報」），即時過濾。</p>
+<div class="searchbox">
+  <input type="text" id="q" placeholder="🔍 搜尋全部端點…（例如：龍虎榜 / 期權 / VIX / 做空 / 研報 / 殖利率）" autocomplete="off">
+  <div class="search-meta" id="searchMeta">共 <span id="totalCount"></span> 個端點 · 輸入即搜尋</div>
+</div>
+<div id="searchResults"></div>
+</div></section>
+
+<section id="sources"><div class="wrap">
+<h2 class="sec">🗄️ 數據源與合規</h2>
+<p class="sub">全球工具包每個來源都標註合規等級（條款原文見 GitHub）；A股則以「零鑒權」為設計原則。</p>
+
+<h3 style="color:#fff;margin:20px 0 6px">全球工具包 · 17 個數據源</h3>
+<table class="tbl">
+<thead><tr><th>數據源</th><th>等級</th><th>鑒權</th><th>覆蓋</th></tr></thead>
+<tbody>
+<tr><td class="nowrap"><b>SEC EDGAR</b></td><td><span class="tier S">S</span></td><td>申報 User-Agent</td><td>美股文件／XBRL／<b>文件流</b>／<b>全文搜尋</b>／<b>市場篩選器</b>／<b>Form 4 內幕交易</b>／<b>13F 持倉</b></td></tr>
+<tr><td class="nowrap"><b>US Treasury</b></td><td><span class="tier S">S</span></td><td>無</td><td><b>收益率曲線（1M~30Y）</b>・財政部 FiscalData：<b>拍賣／聯邦債務／平均利率</b></td></tr>
+<tr><td class="nowrap"><b>CFTC</b></td><td><span class="tier S">S</span></td><td>無</td><td><b>COT 持倉報告</b></td></tr>
+<tr><td class="nowrap"><b>Federal Reserve Board</b></td><td><span class="tier S">S</span></td><td>無</td><td><b>H.10 外匯／H.6 貨幣供給</b>（需註明來源）</td></tr>
+<tr><td class="nowrap"><b>NY Fed</b></td><td><span class="tier S">S</span></td><td>無</td><td><b>SOFR／EFFR／OBFR／TGCR／BGCR</b>（對外展示需附聲明）</td></tr>
+<tr><td class="nowrap"><b>BIS</b></td><td><span class="tier S">S</span></td><td>無</td><td><b>各國央行政策利率</b>（需註明來源）</td></tr>
+<tr><td class="nowrap"><b>ECB</b></td><td><span class="tier S">S</span></td><td>無</td><td><b>EUR 外匯／歐央行關鍵利率／歐元區收益率曲線</b>（需註明來源，不得修改數據）</td></tr>
+<tr><td class="nowrap"><b>US EIA</b></td><td><span class="tier S">S</span>／<span class="tier B">B</span></td><td>無</td><td><b>每週原油／天然氣庫存</b>（S，公有領域）・WTI／Brent／Henry Hub 現貨價（B：Refinitiv 轉載，商用前核實）</td></tr>
+<tr><td class="nowrap"><b>台灣證交所 TWSE</b></td><td><span class="tier S">S</span></td><td>無</td><td>上市股票<b>最新報價／本益比／月營收／融資融券／除權息／股利</b>（需註明來源）</td></tr>
+<tr><td class="nowrap"><b>櫃買中心 TPEx</b></td><td><span class="tier S">S</span></td><td>無</td><td>上櫃股票<b>最新報價／本益比／月營收／融資融券／除權息</b>（需註明來源）</td></tr>
+<tr><td class="nowrap"><b>FINRA</b></td><td><span class="tier B">B</span></td><td>無</td><td>美股<b>全市場每日做空量</b>・<b>做空持倉</b>（商用前先核實）</td></tr>
+<tr><td class="nowrap"><b>CBOE</b></td><td><span class="tier C">C</span></td><td>無</td><td>美股<b>期權＋Greeks＋IV＋0DTE</b>・<b>VIX 等波動率指數</b>（需 Cboe 事先批准＋簽授權協議）</td></tr>
+<tr><td class="nowrap">Eastmoney 東財</td><td><span class="tier C">C</span></td><td>無</td><td>美＋港報價／資金流／財報／搜索（網站前端端點，僅個人研究）</td></tr>
+<tr><td class="nowrap">Sina 新浪</td><td><span class="tier C">C</span></td><td>無</td><td>美＋港報價、美股 K 線</td></tr>
+<tr><td class="nowrap">Tencent 騰訊</td><td><span class="tier C">C</span></td><td>無</td><td>美＋港報價</td></tr>
+<tr><td class="nowrap">Yahoo Finance</td><td><span class="tier D">D</span></td><td>cookie＋crumb（自動）</td><td>美＋港＋其他市場全品類（條款禁止未經許可自動存取；個人研讀自行承擔風險，禁商用轉發）</td></tr>
+<tr><td class="nowrap">Nasdaq</td><td><span class="tier D">D</span></td><td>無</td><td>美股<b>財報日曆</b>（同上）</td></tr>
+<tr><td class="nowrap"><b>HKEX（已排除）</b></td><td><span class="tier X">⛔</span></td><td>—</td><td>條款明禁任何 robot／bot／spider／scraper，不論是否營利 —— <b>本工具不附帶任何港交所爬蟲</b></td></tr>
+</tbody></table>
+
+<div class="disclaimer"><b>合規等級說明：</b><span class="tier S">S</span> 政府與央行數據（含台灣交易所登記為政府開放資料），商用＋轉發 OK（部分需註明來源） · <span class="tier B">B</span> 已公開數據，商用前先核實 · <span class="tier C">C</span> 需事先批准或條款未明，僅供個人研究 · <span class="tier D">D</span> 條款禁止未經許可自動存取；個人研讀自行承擔風險，禁商用或轉發。注意：「官方」≠「可免費商用」—— 商用請只用 <span class="tier S">S</span> 級來源。</div>
+
+<h3 style="color:#fff;margin:28px 0 6px">A股工具包 · 鑒權說明</h3>
+<div class="disclaimer" style="border-left-color:#0ecb81"><b class="hl-green">除 iwencai 外，其餘全部零鑒權</b> —— 無需註冊、無需 API Key。V3.8 的中證／國證／北交所，以及 V3.9 新增的 12 個來源（通達信官網、華爾街見聞、央視網、上證 e 互動、中債、中國貨幣網、五家期貨交易所、上金所）同樣免憑據（北交所用官網匿名 Cookie）。<b>僅 iwencai 語義搜索需要 API Key</b>（<a href="https://www.iwencai.com/skillhub" target="_blank" rel="noopener">申請地址</a>）。</div>
+<p class="note">數據源優先順序（按封 IP 風險）：<b>1. 騰訊財經</b>（首選，不封 IP） → <b>2. 交易所／官方機構</b>（極低） → <b>3. 新浪／巨潮／同花順／百度／財聯社／華爾街見聞／央視網／申萬</b>（低） → <b>4. mootdx／baostock</b>（TCP；mootdx 2026-09 起行情命令失效，只用財務） → <b>末位：東財</b>（有風控會封 IP，統一經 <code>em_get()</code> 限流）。</p>
+</div></section>
+
+<section id="examples"><div class="wrap">
+<h2 class="sec">💬 使用示例</h2>
+<p class="sub">跟你的 AI 助手講以下任何一句，自動激活取數 —— 撳「複製」掣直接抄走。</p>
+<div class="tabs">
+  <button class="tabbtn active" data-tab="tab-a">📕 A股示例</button>
+  <button class="tabbtn" data-tab="tab-g">📘 全球示例</button>
+</div>
+<div id="tab-a" class="prompt-grid">
+  <div class="prompt"><div><div class="pl">個股估值</div><div class="pt">「幫我估一下 688017，給我 PE／PEG／消化時間」</div></div><button class="copybtn" data-copy="幫我估一下 688017，給我 PE／PEG／消化時間">複製</button></div>
+  <div class="prompt"><div><div class="pl">題材歸因</div><div class="pt">「今天哪些股票走強，主要是什麼題材」</div></div><button class="copybtn" data-copy="今天哪些股票走強，主要是什麼題材">複製</button></div>
+  <div class="prompt"><div><div class="pl">研報檢索</div><div class="pt">「人形機器人產業鏈最近的研報，特別是絲槓和減速器」</div></div><button class="copybtn" data-copy="人形機器人產業鏈最近的研報，特別是絲槓和減速器">複製</button></div>
+  <div class="prompt"><div><div class="pl">北向資金</div><div class="pt">「今天北向資金流入流出怎麼樣」</div></div><button class="copybtn" data-copy="今天北向資金流入流出怎麼樣">複製</button></div>
+  <div class="prompt"><div><div class="pl">資金流向</div><div class="pt">「000858 今天主力資金流入還是流出」</div></div><button class="copybtn" data-copy="000858 今天主力資金流入還是流出">複製</button></div>
+  <div class="prompt"><div><div class="pl">龍虎榜</div><div class="pt">「002475 最近上過龍虎榜嗎，哪些營業部在買」</div></div><button class="copybtn" data-copy="002475 最近上過龍虎榜嗎，哪些營業部在買">複製</button></div>
+  <div class="prompt"><div><div class="pl">打板</div><div class="pt">「今天漲停多少家、最高幾連板、炸板率多少」</div></div><button class="copybtn" data-copy="今天漲停多少家、最高幾連板、炸板率多少">複製</button></div>
+  <div class="prompt"><div><div class="pl">漲停歸因</div><div class="pt">「今天漲停的票都是什麼題材，哪些是幾天幾板」</div></div><button class="copybtn" data-copy="今天漲停的票都是什麼題材，哪些是幾天幾板">複製</button></div>
+  <div class="prompt"><div><div class="pl">ETF 期權</div><div class="pt">「50ETF 平值期權的隱含波動率和 Delta 是多少」</div></div><button class="copybtn" data-copy="50ETF 平值期權的隱含波動率和 Delta 是多少">複製</button></div>
+  <div class="prompt"><div><div class="pl">互動易</div><div class="pt">「比亞迪最近投資者都在問什麼，公司怎麼回應的」</div></div><button class="copybtn" data-copy="比亞迪最近投資者都在問什麼，公司怎麼回應的">複製</button></div>
+  <div class="prompt"><div><div class="pl">籌碼分佈</div><div class="pt">「600519 現在獲利盤多少，平均成本在哪，籌碼峰壓力位在哪」</div></div><button class="copybtn" data-copy="600519 現在獲利盤多少，平均成本在哪，籌碼峰壓力位在哪">複製</button></div>
+  <div class="prompt"><div><div class="pl">估值歷史</div><div class="pt">「茅台現在的 PE 在過去十年是什麼分位，順便看下換手率」</div></div><button class="copybtn" data-copy="茅台現在的 PE 在過去十年是什麼分位，順便看下換手率">複製</button></div>
+  <div class="prompt"><div><div class="pl">宏觀環境</div><div class="pt">「最新社融和 PMI 什麼水平，現在流動性是寬還是緊」</div></div><button class="copybtn" data-copy="最新社融和 PMI 什麼水平，現在流動性是寬還是緊">複製</button></div>
+  <div class="prompt"><div><div class="pl">利率曲線</div><div class="pt">「今年以來 10 年期國債收益率怎麼走的，和 AAA 中短票的利差多少」</div></div><button class="copybtn" data-copy="今年以來 10 年期國債收益率怎麼走的，和 AAA 中短票的利差多少">複製</button></div>
+  <div class="prompt"><div><div class="pl">全市場日線</div><div class="pt">「2026-09-18 滬深北全市場的收盤價和成交額，按成交額排前 20」</div></div><button class="copybtn" data-copy="2026-09-18 滬深北全市場的收盤價和成交額，按成交額排前 20">複製</button></div>
+  <div class="prompt"><div><div class="pl">期貨持倉</div><div class="pt">「IF2610 前 20 名會員的多空持倉變化」</div></div><button class="copybtn" data-copy="IF2610 前 20 名會員的多空持倉變化">複製</button></div>
+  <div class="prompt"><div><div class="pl">業績預告</div><div class="pt">「三季報業績預告裡預增幅度最大的是哪些」</div></div><button class="copybtn" data-copy="三季報業績預告裡預增幅度最大的是哪些">複製</button></div>
+  <div class="prompt"><div><div class="pl">可轉債</div><div class="pt">「現在溢價率最低的可轉債有哪些」</div></div><button class="copybtn" data-copy="現在溢價率最低的可轉債有哪些">複製</button></div>
+</div>
+<div id="tab-g" class="prompt-grid" style="display:none">
+  <div class="prompt"><div><div class="pl">0DTE 期權流</div><div class="pt">"Show NVDA's 0DTE options flow — unusual activity"</div></div><button class="copybtn" data-copy="Show NVDA's 0DTE options flow — unusual activity">複製</button></div>
+  <div class="prompt"><div><div class="pl">做空量</div><div class="pt">"TSLA's short volume ratio trend this week"</div></div><button class="copybtn" data-copy="TSLA's short volume ratio trend this week">複製</button></div>
+  <div class="prompt"><div><div class="pl">做空持倉</div><div class="pt">"GME's short interest and days to cover over the last few periods"</div></div><button class="copybtn" data-copy="GME's short interest and days to cover over the last few periods">複製</button></div>
+  <div class="prompt"><div><div class="pl">VIX 期限結構</div><div class="pt">"Is the VIX term structure inverted right now?"</div></div><button class="copybtn" data-copy="Is the VIX term structure inverted right now?">複製</button></div>
+  <div class="prompt"><div><div class="pl">內幕交易</div><div class="pt">"How many shares did NVDA insiders sell in the past six months?"</div></div><button class="copybtn" data-copy="How many shares did NVDA insiders sell in the past six months?">複製</button></div>
+  <div class="prompt"><div><div class="pl">13F 持倉</div><div class="pt">"Berkshire's top 10 holdings in its latest 13F"</div></div><button class="copybtn" data-copy="Berkshire's top 10 holdings in its latest 13F">複製</button></div>
+  <div class="prompt"><div><div class="pl">全文搜尋</div><div class="pt">"Which companies first mentioned 'HBM4' in an 8-K"</div></div><button class="copybtn" data-copy="Which companies first mentioned 'HBM4' in an 8-K">複製</button></div>
+  <div class="prompt"><div><div class="pl">市場篩選器</div><div class="pt">"Rank all filers by R&D expense for CY2025Q1"</div></div><button class="copybtn" data-copy="Rank all filers by R&D expense for CY2025Q1">複製</button></div>
+  <div class="prompt"><div><div class="pl">宏觀</div><div class="pt">"What's the 10Y-2Y Treasury spread right now"</div></div><button class="copybtn" data-copy="What's the 10Y-2Y Treasury spread right now">複製</button></div>
+  <div class="prompt"><div><div class="pl">央行利率</div><div class="pt">"Current policy rates of the major central banks"</div></div><button class="copybtn" data-copy="Current policy rates of the major central banks">複製</button></div>
+  <div class="prompt"><div><div class="pl">台股</div><div class="pt">"TSMC's latest close and P/E"</div></div><button class="copybtn" data-copy="TSMC's latest close and P/E">複製</button></div>
+  <div class="prompt"><div><div class="pl">原油庫存</div><div class="pt">"This week's EIA crude inventories"</div></div><button class="copybtn" data-copy="This week's EIA crude inventories">複製</button></div>
+  <div class="prompt"><div><div class="pl">即時報價</div><div class="pt">"AAPL's price and PE"</div></div><button class="copybtn" data-copy="AAPL's price and PE">複製</button></div>
+  <div class="prompt"><div><div class="pl">技術分析</div><div class="pt">"AAPL's MACD and RSI — any golden cross?"</div></div><button class="copybtn" data-copy="AAPL's MACD and RSI — any golden cross?">複製</button></div>
+</div>
+</div></section>
+
+<section id="quickstart"><div class="wrap">
+<h2 class="sec">🚀 快速開始</h2>
+<p class="sub">三步，兩分鐘。SKILL.md 本質是結構化 Markdown＋內嵌 Python，任何支援上下文注入的 AI 編程助手都用得。</p>
+
+<h3 style="color:#fff;margin:20px 0 6px">📕 a-stock-data（A股）</h3>
+<div class="code"><span class="c"># 1. 創建 skill 目錄</span>
+mkdir -p ~/.claude/skills/a-stock-data
+
+<span class="c"># 2. 把 SKILL.md 放進去</span>
+curl -o ~/.claude/skills/a-stock-data/SKILL.md \
+  https://raw.githubusercontent.com/simonlin1212/a-stock-data/main/SKILL.md
+
+<span class="c"># 3. 安裝依賴（V3.0 不再需要 akshare）</span>
+pip install mootdx requests pandas stockstats numpy baostock xlrd openpyxl</div>
+<p class="note">啟動 Claude Code，說一句「幫我看看 688017 的估值」，自動激活。Codex／OpenClaw 用戶：把 SKILL.md 內容貼入系統 prompt 或項目上下文文件即可。</p>
+<div class="caps"><span class="badge gold">Claude Code</span><span class="badge">Codex</span><span class="badge">OpenClaw</span><span class="badge">WorkBuddy</span><span class="badge">Muse</span><span class="badge">Grok Bot</span></div>
+
+<h3 style="color:#fff;margin:28px 0 6px">📘 global-stock-data（美股＋全球）</h3>
+<div class="code"><span class="c"># 1. 創建 skill 目錄</span>
+mkdir -p ~/.claude/skills/global-stock-data
+
+<span class="c"># 2. 下載 SKILL.md</span>
+curl -o ~/.claude/skills/global-stock-data/SKILL.md \
+  https://raw.githubusercontent.com/simonlin1212/global-stock-data/main/SKILL.md
+
+<span class="c"># 3. 安裝依賴（只需要 requests）</span>
+pip install requests
+<span class="c"># Windows 另需：pip install tzdata（Yahoo K 線日期用交易所時區）</span></div>
+<div class="disclaimer">⚠️ <b>用 SEC 層之前，先把 SKILL.md 裡的 <code>SEC_CONTACT</code> 改成你的真實姓名＋電郵。</b>SEC 要求申報 User-Agent；沒申報的請求會被當成「未申報自動化工具」拒絕。漏填會觸發清晰報錯提醒。</div>
+<div class="caps"><span class="badge gold">Claude Code</span><span class="badge">Codex</span><span class="badge">OpenClaw</span></div>
+</div></section>
+
+<footer><div class="wrap">
+<div class="fl">
+  <span>📊 <b style="color:#fff">股市數據工具包</b></span>
+  <a href="https://github.com/simonlin1212/a-stock-data" target="_blank" rel="noopener">a-stock-data</a>
+  <a href="https://github.com/simonlin1212/global-stock-data" target="_blank" rel="noopener">global-stock-data</a>
+  <span>作者：simonlin1212（Simon 林）</span>
+  <a href="https://x.com/linsizhen" target="_blank" rel="noopener">X @linsizhen</a>
+  <span>License：Apache-2.0</span>
+</div>
+<div class="disclaimer">📌 <b>資訊整理自 GitHub 公開 repo</b>（<a href="https://github.com/simonlin1212/a-stock-data" target="_blank" rel="noopener">a-stock-data</a> · <a href="https://github.com/simonlin1212/global-stock-data" target="_blank" rel="noopener">global-stock-data</a>）。本站只整理<b>代碼資訊</b>，不分發市場數據；數據由使用者按各數據源自身的條款自行獲取。本項目僅提供數據獲取工具，<b>不構成任何投資建議。股市有風險，投資需謹慎。</b></div>
+<p style="margin-top:12px">整理日期：2026-10-13 · a-stock-data V3.10.2 · global-stock-data V2.2</p>
+</div></footer>
+
+<script>
+/* ---------- search index: [repo, layer, endpoint, data] ---------- */
+var IDX=[
+["A","行情層","騰訊財經","PE(TTM)／PB／總市值／流通市值／換手率／漲跌停價／指數／ETF"],
+["A","行情層","騰訊 K 線","滬深日／週／月前後復權＋1／5／15／30／60 分鐘 K 線；不含北交所"],
+["A","行情層","通達信盤後包","某交易日滬深北全市場日線（含成交額），單個 zip 約 2~3MB"],
+["A","行情層","騰訊逐筆成交","最近一交易日全部分筆：時間／價格／量／額／買賣方向；不含北交所"],
+["A","行情層","百度 K 線","日 K 線＋MA5／MA10／MA20 均價直接返回"],
+["A","行情層","新浪復權因子","qfq／hfq 因子序列，可套用至不復權 K 線"],
+["A","行情層","mootdx 行情（留檔）","2026-09 起通達信公開伺服器返回空；K 線改用騰訊，逐筆改用騰訊逐筆"],
+["A","研報層","東財 reportapi","個股研報列表＋評級＋三年 EPS 預測"],
+["A","研報層","東財行業研報","行業研報列表＋行業名／行業碼＋評級"],
+["A","研報層","東財 PDF 下載","完整研報 PDF（已處理 Referer 鑒權）"],
+["A","研報層","同花順一致預期","機構一致預期 EPS"],
+["A","研報層","iwencai NL 搜索","自然語言跨主題研報檢索（需 API Key）"],
+["A","研報層","新浪研報列表","標題／類型／機構／研究員／日期；第二來源（無評級與目標價）"],
+["A","信號層","同花順熱點","當日強勢股＋題材歸因（編輯部人工標註）"],
+["A","信號層","同花順北向（即時）","滬股通分鐘級資金流向"],
+["A","信號層","東財板塊歸屬","個股所屬全部板塊＋BK 碼＋當日漲跌幅＋龍頭股"],
+["A","信號層","東財資金流向","主力／大單／中單／小單／超大單分鐘級淨流入"],
+["A","信號層","龍虎榜席位","上榜記錄＋買賣席位 TOP5＋機構動向"],
+["A","信號層","全市場龍虎榜","每日全市場上榜股票＋淨買額排名＋上榜原因"],
+["A","信號層","限售解禁日曆","歷史解禁＋未來 90 天待解禁預警"],
+["A","信號層","行業板塊排名","東財行業漲跌／上漲下跌家數"],
+["A","信號層","板塊資金流向","行業／概念／地域 × 今日／5日／10日主力淨流入＋四檔拆單＋領漲股"],
+["A","資金面／籌碼層","融資融券明細","日級融資餘額／買入／償還＋融券餘額／賣出／償還"],
+["A","資金面／籌碼層","大宗交易","成交價／量＋買賣方營業部＋溢價率"],
+["A","資金面／籌碼層","股東戶數變化","季度股東數＋環比變化＋戶均持股（籌碼集中度）"],
+["A","資金面／籌碼層","分紅送轉歷史","每股派息／送股／轉增＋進度狀態"],
+["A","資金面／籌碼層","個股資金流 120 日","主力／大單／中單／小單日級淨流入"],
+["A","資金面／籌碼層","籌碼分佈 CYQ","獲利比例／平均成本／90-70 成本區間與集中度／籌碼峰（本地計算）"],
+["A","資金面／籌碼層","ETF 份額","上交所按日歸檔／深交所當前快照（單位：萬份）"],
+["A","新聞層","個股新聞","東財個股新聞流"],
+["A","新聞層","財聯社電報","全市場即時快訊（v1 API＋本地簽名，零 key）"],
+["A","新聞層","全球資訊","東財全球財經資訊（7×24）"],
+["A","新聞層","華爾街見聞快訊","按頻道 7×24 快訊，帶翻頁游標"],
+["A","新聞層","新聞聯播","當日條目標題＋文字稿（央視網，約 20:00 後更新）"],
+["A","基礎數據＋公告","季報快照","37 字段（EPS／ROE／淨利潤／主營收入…）"],
+["A","基礎數據＋公告","F10 文本","「最新提示」摘要（2026-09 起伺服器端只剩此類）"],
+["A","基礎數據＋公告","東財個股信息","行業／總股本／流通股／市值／上市日期"],
+["A","基礎數據＋公告","新浪財報三表","資產負債表／利潤表／現金流量表"],
+["A","基礎數據＋公告","巨潮公告","滬深北交易所全量公告"],
+["A","基礎數據＋公告","估值歷史","日頻 PE／PB／PS／PCF＋換手率＋停牌＋ST，可回溯至 2016；不支援北交所"],
+["A","基礎數據＋公告","上市／退市日","ipoDate／outDate／狀態（唯一零鑒權退市日源）"],
+["A","基礎數據＋公告","申萬行業變遷史","每隻股票歷次行業調整（消除前視偏差）"],
+["A","基礎數據＋公告","ST 名單","滬深京 ST／*ST 當日名單＋現價；東財不可達時降級 baostock"],
+["A","打板層","東財漲停池","連板數／幾天幾板／封板資金／炸板次數／首末封板時間／所屬行業"],
+["A","打板層","東財炸板池","曾漲停後開板＋振幅／漲速"],
+["A","打板層","東財跌停池","封單資金／連續跌停天數／開板次數／板上成交額"],
+["A","打板層","東財昨日漲停池","昨漲停今表現（自算晉級率／賺錢效應）"],
+["A","打板層","同花順漲停揭秘","漲停原因題材／封板成功率／一字·換手·T 字板／封單額"],
+["A","打板層","東財重點監控池","交易所風險警示／重點監控名單＋生效時間窗"],
+["A","打板層","東財日內異動池","嚴重異常波動明細＋12 條異動規則解釋"],
+["A","ETF 期權層","期權合約清單","50ETF／300ETF／科創 50ETF／500ETF 各月份認購認沽合約"],
+["A","ETF 期權層","T 型報價","買賣五檔／持倉量／行權價／最新價／成交量額"],
+["A","ETF 期權層","希臘字母＋IV","Delta／Gamma／Theta／Vega／隱含波動率／理論價值"],
+["A","輿情互動層","互動易問答","投資者提問＋公司官方回覆（巨潮，覆蓋深市）"],
+["A","輿情互動層","上證 e 互動","滬市投資者提問＋公司回覆"],
+["A","輿情互動層","同花順熱榜","人氣值／概念標籤／排名變化"],
+["A","輿情互動層","東財人氣榜","排名＋排名變化＋名稱價格"],
+["A","輿情互動層","東財個股概念命中","當下被市場歸入哪些概念在炒＋熱度值"],
+["A","宏觀利率層","人民銀行社融","社會融資規模增量月度 12 列"],
+["A","宏觀利率層","國家統計局 PMI","製造業／非製造業商務活動／綜合產出＋大中小型分檔"],
+["A","宏觀利率層","中債收益率曲線","國債／AAA／中短期票據 AAA，3 個月~30 年關鍵期限"],
+["A","宏觀利率層","回購定盤利率","FR001／FR007／FR014 與 FDR（中國貨幣網）"],
+["A","宏觀利率層","LPR","1 年／5 年全歷史（含 2013~2019 舊機制逐日報價）"],
+["A","宏觀利率層","全球宏觀日曆","公佈值／預期／前值／修正值／重要性（華爾街見聞）"],
+["A","指數日曆","指數成分","中證最新成分、國證最近公佈的月末成分"],
+["A","指數日曆","指數權重","中證／國證最近公佈權重（單位：百分数）"],
+["A","指數日曆","指數估值","中證兩種股本口徑的 PE 和股息率"],
+["A","指數日曆","官方交易日曆","深交所完整自然月交易標誌"],
+["A","期貨大宗層","期貨日行情","開高低收、結算價、成交量、持倉量及變化、成交額（五家期貨交易所官方）"],
+["A","期貨大宗層","期權日行情","行權價、結算價、成交持倉、Delta、隱含波動率"],
+["A","期貨大宗層","會員持倉排名","成交量／持買單／持賣單前 20 名會員及增減"],
+["A","期貨大宗層","實時期貨","新浪實時價、買賣一檔（大商所品種走這裡）"],
+["A","期貨大宗層","期貨日 K","主力連續（最早 2005 年）或具體合約；六家交易所全覆蓋、含大商所"],
+["A","期貨大宗層","A50 期指","富時中國 A50 連續合約報價"],
+["A","期貨大宗層","上海金現貨","上金所 Au99.99／Au(T+D)／Ag(T+D)／Pt99.95 等日線"],
+["A","事件驅動層","業績預告","預告類型、預計金額與變動幅度區間、變動原因"],
+["A","事件驅動層","機構調研","調研匯總（接待機構數／方式／地點）或逐機構明細"],
+["A","事件驅動層","股東增減持","股東、方向、變動股數與比例、均價、渠道"],
+["A","事件驅動層","股票回購","方案價格上限、股數與金額區間、進度"],
+["A","事件驅動層","股權質押","中國結算週度質押比例、質押股數與市值（僅滬深）"],
+["A","事件驅動層","新股申購日曆","申購／中簽／繳款／上市日期、發行價與市盈率、中簽率"],
+["A","可轉債層","可轉債","正股、評級、發行規模、轉股價、轉股價值、溢價率、上市／到期／摘牌日與狀態"],
+["A","備用源","官方龍虎榜備胎","上交所＋深交所官方接口，零鑒權權威一手"],
+["A","備用源","資金流備胎","新浪日度四檔單淨額"],
+["A","備用源","公告備胎","深市走深交所官方、滬市走東財（巨潮被封時用）"],
+["A","備用源","官方兩融備胎","上交所／深交所分開查詢"],
+["A","備用源","北交所行情備胎","全板或單票 OHLC／成交量額／五檔快照"],
+["G","行情","即時報價","Sina／Tencent／Eastmoney push2：美股／港股即時報價 25~78 字段"],
+["G","K 線","Sina／Yahoo K 線","日／週／月／分鐘 K 線；美股回溯至 1984；Yahoo 真實完整歷史日線（交易所當地日期）"],
+["G","K 線","海外市場代碼後綴","日本 .T／台灣 .TW／韓國 .KS／印度 .NS／倫敦 .L／德國 .DE 等"],
+["G","技術指標","技術指標","MA／EMA＋MACD＋RSI＋KDJ＋布林通道（純 Python 本地計算）"],
+["G","基本面","東財財報","財務三表＋關鍵指標（美股 49 字段／港股 75 字段，中英雙語）"],
+["G","基本面","Yahoo quoteSummary","23 模組：財務、分析師預測、機構持倉"],
+["G","基本面","SEC XBRL","503 項 GAAP 結構化財務指標（美股）"],
+["G","資金流","日級資金流","每日主力／大單／中單／小單資金流向"],
+["G","期權·CBOE","CBOE 官方期權鏈","完整期權鏈＋IV＋delta／gamma／vega／theta／rho＋0DTE 過濾＋異常資金流偵測"],
+["G","期權·CBOE","Yahoo 備用","期權鏈、全部到期日 —— 無 Greeks"],
+["G","波動率","vol_index_history()","每日 VIX（自 1990 年起）／VIX1D／9D／3M／6M／1Y／VVIX／SKEW／OVX／GVZ"],
+["G","波動率","vix_term_structure()","各期限最新 VIX、正價差／逆價差判斷、長短期利差"],
+["G","做空量","FINRA 每日做空量","全市場每日做空成交（12,112 個標的），個股序列＋比率排名"],
+["G","做空持倉","short_interest() 系列","全美未平倉空單（每月兩次，22,595 個標的），覆蓋天數 days to cover、與上期變化"],
+["G","做空持倉","short_interest_ranking()","按覆蓋天數／空單股數／變化幅度排名"],
+["G","文件流","EDGAR 日度索引","當日 Form 4／8-K／13F／144（單日約 547／370／261／118 份）"],
+["G","文件流","EDGAR 全文搜尋","搜尋 2001 年起所有文件正文"],
+["G","文件流","submissions／XBRL","文件列表＋結構化財務（503 項 GAAP 指標）"],
+["G","內幕／13F","insider_trades() Form 4 解析","內幕交易逐筆：交易日、類型、股數、價格、交易後持股、是否勾選 10b5-1；另附公開市場買賣匯總"],
+["G","內幕／13F","holdings_13f() 13F 解析","機構季度持倉，按市值排序＋權重，與封面總額對賬"],
+["G","市場篩選器","EDGAR frames","任意 XBRL 標籤一呼叫全市場免費篩選"],
+["G","宏觀／日曆","美債收益率曲線","1 個月～30 年期國債收益率（財政部）"],
+["G","宏觀／日曆","CFTC COT","交易商持倉報告（期貨大戶多空倉位）"],
+["G","宏觀／日曆","財報日曆","Nasdaq 財報日曆：盤前／盤後公佈＋EPS 預期（Tier D）"],
+["G","全球利率／外匯","BIS policy_rates()","38 家央行政策利率（48 個經濟體），一呼叫全取"],
+["G","全球利率／外匯","ECB 匯率／利率／曲線","EUR 參考匯率・三大關鍵利率・歐元區公債收益率曲線・任意 ECB 序列"],
+["G","全球利率／外匯","NY Fed nyfed_rates()","SOFR／EFFR／OBFR／TGCR／BGCR；SOFR 平均值與指數"],
+["G","全球利率／外匯","Fed Board fed_data()","H.10 美元兌 23 種貨幣・H.6 M1／M2 貨幣供給"],
+["G","全球利率／外匯","Treasury fiscal_data()","拍賣結果（得標利率、投標倍數）與日程・每日聯邦債務・平均利率"],
+["G","台灣","tw_stock()","單一台股最新報價＋本益比／股價淨值比／殖利率；上市／上櫃自動判斷"],
+["G","台灣","tw_market()","全市場或單一個股：報價・估值・月營收・公司簡介・融資融券・除權息・股利決議"],
+["G","能源","energy_inventories()","每週原油（商業＋戰略儲備）／汽油／餾分油／天然氣庫存（Tier S）"],
+["G","能源","energy_prices()","WTI（自 1986）／Brent（自 1987）／Henry Hub（自 1997）每日現貨價（Tier B）"],
+["G","工具","股票搜索","中英文股票搜尋"],
+["G","工具","全市場清單","美股 5,925+／港股 18,000+ 全市場股票列表"],
+["G","工具","個股新聞","按代碼取新聞"],
+["G","工具","Ticker ↔ CIK","股票代碼與 SEC CIK 互查"]
+];
+</script>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id);};
+/* ---------- scrollspy ---------- */
+var links=Array.prototype.slice.call(document.querySelectorAll('nav a.navlink'));
+var secs=links.map(function(a){return $(a.getAttribute('href').slice(1));});
+function spy(){
+  var y=window.scrollY+90,cur=0;
+  for(var i=0;i<secs.length;i++){if(secs[i]&&secs[i].offsetTop<=y)cur=i;}
+  links.forEach(function(a,i){a.classList.toggle('active',i===cur);});
+}
+window.addEventListener('scroll',spy,{passive:true});spy();
+
+/* ---------- example tabs ---------- */
+var tabbtns=Array.prototype.slice.call(document.querySelectorAll('.tabbtn'));
+tabbtns.forEach(function(b){
+  b.addEventListener('click',function(){
+    tabbtns.forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active');
+    $('tab-a').style.display=b.dataset.tab==='tab-a'?'grid':'none';
+    $('tab-g').style.display=b.dataset.tab==='tab-g'?'grid':'none';
+  });
+});
+
+/* ---------- copy buttons ---------- */
+Array.prototype.forEach.call(document.querySelectorAll('.copybtn'),function(btn){
+  btn.addEventListener('click',function(){
+    var txt=btn.getAttribute('data-copy');
+    function done(){btn.textContent='✓ 已複製';btn.classList.add('done');setTimeout(function(){btn.textContent='複製';btn.classList.remove('done');},1500);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done,done);
+    }else{
+      var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);
+      ta.select();try{document.execCommand('copy');}catch(e){}
+      document.body.removeChild(ta);done();
+    }
+  });
+});
+
+/* ---------- cross-repo endpoint search ---------- */
+$('totalCount').textContent=IDX.length;
+var box=$('searchResults'),meta=$('searchMeta'),input=$('q');
+var REN={"A":"A股工具包","G":"全球工具包"};
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function mark(s,q){if(!q)return esc(s);var i=s.toLowerCase().indexOf(q);if(i<0)return esc(s);
+  return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length));}
+function render(q){
+  q=(q||'').trim().toLowerCase();
+  var rows=[];
+  for(var i=0;i<IDX.length;i++){
+    var r=IDX[i];
+    if(q&&(r[1]+' '+r[2]+' '+r[3]).toLowerCase().indexOf(q)<0)continue;
+    rows.push('<tr><td class="nowrap"><span class="repo-tag '+(r[0]==='A'?'a':'g')+'">'+REN[r[0]]+'</span></td>'
+      +'<td class="nowrap">'+mark(r[1],q)+'</td>'
+      +'<td class="nowrap"><b>'+mark(r[2],q)+'</b></td>'
+      +'<td>'+mark(r[3],q)+'</td></tr>');
+  }
+  if(!rows.length){
+    box.innerHTML='<p class="note" style="margin:20px 0">😅 冇結果 —— 試下換個關鍵字（例如「龍虎榜」「期權」「VIX」「做空」「研報」「利率」）。</p>';
+  }else{
+    box.innerHTML='<table class="tbl"><thead><tr><th>Repo</th><th>層</th><th>端點</th><th>數據說明</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
+  }
+  meta.innerHTML='共 <span>'+IDX.length+'</span> 個端點 · '+(q?('「<b style="color:#f0b90b">'+esc(q)+'</b>」命中 <b>'+rows.length+'</b> 個'):'輸入即搜尋');
+}
+input.addEventListener('input',function(){render(input.value);});
+render('');
+})();
+</script>
+</body>
+</html>
